@@ -136,7 +136,7 @@ https://github.com/settings/ssh
 </pre>
 > 为什么GitHub需要SSH Key呢？因为GitHub需要识别出你推送的提交确实是你推送的，而不是别人冒充的
 
-### 添加远程库
+### 添加并关联远程库
 现在的情景是，你已经在本地创建了一个Git仓库后，又想在GitHub创建一个Git仓库，并且让这两个仓库进行远程同步，这样，GitHub上的仓库既可以作为备份，又可以让其他人通过该仓库来协作，真是一举多得。
 
 加号 --> New Repository --> 加入名字保持默认
@@ -146,7 +146,7 @@ $ cd /e/MyGit
 $ git remote add origin git@github.com:Aresona/edu-docs.git
 $ git push -u origin master
 The authenticity of host 'github.com (192.30.252.129)' can't be established.
-RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.
+RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCRLviKwE5SY8.
 Are you sure you want to continue connecting (yes/no)? yes
 Warning: Permanently added 'github.com,192.30.252.129' (RSA) to the list of known hosts.
 Counting objects: 3, done.
@@ -157,6 +157,55 @@ To git@github.com:Aresona/edu-docs.git
 Branch master set up to track remote branch master from origin.
 
 </pre>
+
+### 克隆远程库
+
+* 创建远程库
+
+<pre>
+New Repository --> Initialize this repository with a README 
+</pre>
+
+* 克隆远程库到本地工作区
+<pre>
+git clone git@github.com:Aresona/GIt.git
+</pre>
+
+
+## 分支管理
+
+### 概念
+
+##### 分支
+
+1. 不只是HEAD是一个指针，master和dev也是一个指针，它们的对应关系是：HEAD指向分支指针，而分去指针又指向最新的提交。
+2. 当新增一个分去的时候，其实是新创建一个分支指针，然后把HEAD指针指向这个指针，工作区内容不变，所以在GIT下创建一个分支非常简单。
+3. 当有一个新的提交的时候，分支指针就会指向最新的提交，也就是说向前移一步，相应地HEAD指针也就向前移一步。
+
+##### 合并
+
+1. 合并的时候工作区的内容也不会变化，同样也是指针在变化
+2. 合并就是直接把master指向dev的当前提交，就完成了合并：
+
+
+
+
+
+#### 小结
+
+Git鼓励大量使用分支：
+
+查看分支：`git branch`
+
+创建分支：`git branch <name>`
+
+切换分支：`git checkout <name>`
+
+创建+切换分支：`git checkout -b <name>`
+
+合并某分支到当前分支：`git merge <name>`
+
+删除分支：`git branch -d <name>`
 
 ## 场景演练
 场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
