@@ -348,6 +348,12 @@ git tag -d v0.1
 git push origin :refs/tags/v0.1
 </pre>
 
+## 自定义Git
+
+**让Git显示颜色**
+
+    git config --global color.ui true
+
 
 
 ## 场景演练
