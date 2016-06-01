@@ -272,6 +272,84 @@ Git鼓励大量使用分支：
 查看分支合并图： `git log --graph` 或 `git log --graph --pretty=oneline` 或 `git log --graph --abbrev-commit`
 
 
+### 标签管理
+
+> 标签就是版本库(.git)的一个快照，它其实也是一个指针，指向打标签时最新commit；其实它跟分支很像，都是指针，它们的区别就在于分支可以移动，而标签不能移动；
+
+**切换到主分支**
+
+<pre>
+git checkout master
+</pre>
+
+**打标签**
+
+<pre>
+git tag v1.0
+</pre>
+
+**查看所有标签**
+
+<pre>
+git tag 
+</pre>
+
+**通过历史commit id打标签**
+
+<pre>
+git log --pretty=oneline -abbrev-commit
+git tag v0.9 6a5819e
+</pre>
+
+> `git tag` 显示的标签列表不是以时间排序的，而是以字母顺序排的
+
+**查看tag的详细信息**
+
+<pre>
+git show <tagname>
+</pre>
+
+
+**在创建标签的时候指定说明文字**
+
+<pre>
+git tag -a v2.0 -m "commit information"
+</pre>
+
+**本地删除标签**
+
+<pre>
+git tag -d v0.1
+</pre>
+
+**推送标签到远程库**
+
+<pre>
+git push origin <tagname>
+</pre>
+
+**一次性推送所有未推送到远程的标签**
+
+<pre>
+git push origin --tags
+</pre>
+
+**删除推送到远程的标签**
+
+* 先删除本地标签
+
+<pre>
+git tag -d v0.1
+</pre>
+
+* 从远程删除
+
+<pre>
+git push origin :refs/tags/v0.1
+</pre>
+
+
+
 ## 场景演练
 场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
 
