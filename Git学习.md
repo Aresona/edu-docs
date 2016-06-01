@@ -187,8 +187,71 @@ git clone git@github.com:Aresona/GIt.git
 1. 合并的时候工作区的内容也不会变化，同样也是指针在变化
 2. 合并就是直接把master指向dev的当前提交，就完成了合并：
 
+### 解决冲突
 
+> 个人理解：如果在master分支上另外创建分支，然后在建立分支的节点上合并的时候是不会发生冲突的，只有在master分支也commit后才可能会发生冲突。
 
+> 在git merge dev的时候，git会把所有冲突的东西都放在那个文件里面，我们需要做的就是把里面的东西修改掉，最低的标准就是把那些>>><<<==之类的去掉
+
+**禁用Fast-Forward合并模式**
+
+    git merge --no-ff -m "merge with no-ff" dev
+
+**不使用Fast-Foward模式来合并图**
+
+![](http://www.liaoxuefeng.com/files/attachments/001384909222841acf964ec9e6a4629a35a7a30588281bb000/0)
+
+**使用Fast-Forward模式合并图**
+
+![](http://www.liaoxuefeng.com/files/attachments/00138490883510324231a837e5d4aee844d3e4692ba50f5000/0)
+
+**解决冲突后的合并图**
+
+![](http://www.liaoxuefeng.com/files/attachments/00138490913052149c4b2cd9702422aa387ac024943921b000/0)
+
+#### 分支管理策略
+
+在实际开发中，我们应该按照几个基本原则进行分支管理 ：
+
+首先，master分支应该是非常稳定的，也就是仅用来发布新版本，平时不能在上面干活；
+
+那在哪干活呢？干活都在dev分支上，也就是说，dev分支是不稳定的，到某个时候，比如1.0版本发布时，再把dev分支合并到master上，在master分支发布1.0版本；
+
+你和你的小伙伴们每个人都在dev分支上干活，每个人都有自己的分支，时不时地往dev分支上合并就可以了。
+
+所以，团队合作的分支看起来就像这样：
+
+![](http://www.liaoxuefeng.com/files/attachments/001384909239390d355eb07d9d64305b6322aaf4edac1e3000/0)
+
+#### Bug分支相关
+
+> 它的要点就是bug需要紧急处理的时候需要切分支，这时就需要一个从容的方法
+
+**存储工作现场**
+
+    git stash
+
+**查看存储列表**
+
+	git stash list
+
+**恢复工作区**
+
+* 用 `git stash apply` 恢复，但恢复后，stash内容并不删除，需要 `git stash drop` 手动删除 
+* 用 `git stash pop` ，恢复的同时把stash内容也删了；
+* 用 `git stash apply stash@{0}`来恢复指定的stash
+
+#### reature分支相关
+
+> feature分支的特殊之处就是在有些功能可能在开发一半后就不需要了，这时使用 `git branch -d feature` 的时候是删除不掉的，它会提示使用命令 `git branch -D feature` 来删除。
+
+#### 多人协作相关
+
+查看远程库的信息，用 `git remote`
+
+用 `git remote -v` 显示更详细的信息，*如果没有推送权限，就看不到push的地址*
+
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上；
 
 
 #### 小结
@@ -206,6 +269,9 @@ Git鼓励大量使用分支：
 合并某分支到当前分支：`git merge <name>`
 
 删除分支：`git branch -d <name>`
+
+查看分支合并图： `git log --graph` 或 `git log --graph --pretty=oneline` 或 `git log --graph --abbrev-commit`
+
 
 ## 场景演练
 场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
