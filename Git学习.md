@@ -240,7 +240,7 @@ git clone git@github.com:Aresona/GIt.git
 * 用 `git stash pop` ，恢复的同时把stash内容也删了；
 * 用 `git stash apply stash@{0}`来恢复指定的stash
 
-#### reature分支相关
+#### feature分支相关
 
 > feature分支的特殊之处就是在有些功能可能在开发一半后就不需要了，这时使用 `git branch -d feature` 的时候是删除不掉的，它会提示使用命令 `git branch -D feature` 来删除。
 
@@ -306,7 +306,7 @@ git tag v0.9 6a5819e
 **查看tag的详细信息**
 
 <pre>
-git show <tagname>
+git show tagname
 </pre>
 
 
@@ -325,7 +325,7 @@ git tag -d v0.1
 **推送标签到远程库**
 
 <pre>
-git push origin <tagname>
+git push origin tagname
 </pre>
 
 **一次性推送所有未推送到远程的标签**
