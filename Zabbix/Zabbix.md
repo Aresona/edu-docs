@@ -1,6 +1,9 @@
 ## 安装Zabbix 3.0
 
 <pre>
+可以用阿里源
+rpm -ivh http://mirrors.aliyun.com/zabbix/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el7.noarch.rpm
+http://www.aclstack.com/284.html
 rpm -ivh http://repo.zabbix.com/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el7.noarch.rpm
 yum install zabbix-server-mysql zabbix-web-mysql -y
 yum install zabbix-agent -y
@@ -62,6 +65,8 @@ php_value date.timezone Asia/Shanghai
 
 ### 访问WEB服务器完成安装
 
+    http://192.168.56.11/zabbix
+
 > 当出现 `Configuration file "/etc/zabbix/web/zabbix.conf.php" created.` 的时候说明安装成功了
 
 > 默认安装完后的用户名是Admin,密码是zabbix；它是一个超级管理员。默认zabbix有两个账户，另外一个是guest,没有登录的用户使用的权限都是guest,并且guest无法访问zabbix的objects.
@@ -69,4 +74,21 @@ php_value date.timezone Asia/Shanghai
 > zabbix服务默认还支持防暴力破解的功能，五次输入不正确的时候Zabbix接口就会停止30秒
 
 > zabbix里面的访问权限（如对服务器的只读权限）只能赋给用户组，不能赋给单独的用户
+
+########## zabbix日志
+
+    /var/log/zabbix/zabbix_server.log
+
+
+配置Agent端
+被动模式的IP地址
+
+/etc/zabbix/zabbix_agentd.conf
+Server=127.0.0.1
+主动地址
+ServerActive=127.0.0.1
+systemctl start zabbix-agent
+
+
+
 
