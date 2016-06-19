@@ -3,11 +3,30 @@
 1. 安装zabbix-agent
 2. 修改配置文件/etc/zabbix/zabbix-agnetd.conf(修改Server为zabbix服务端)
 3. 启动zabbix-agent
-4. web配置
+4. web配置（添加主机－item-模板）
+
+######## zabbix-agnet配置文件分为下面几部分
+
+1. general parameters
+2. Passive Check Related
+3. Active Check Related（主动模式的时候HostName参数很重要，并且需要跟WEB上的主机名保持一致）
+4. ADVANCED PARAMETERS
+5. USER-DEFINED MONITORED PARAMETERS
+6. LOADABLE MODULES
+7. TLS-RELATED PARAMETERS
 ###### web配置（通过克隆的方式）
 
 主机 --> 全部克隆 --> 修改 --> templates选 OS Linux
 
+> 对于模板来说，一般使用的就是linux那个模板，还有就是一些自定义的模板。
+> 可能会用到的一些模板：
+
+1. APP相关Template App HTTP Service（这类模板一般只会检测服务是否宕了）
+2. ICMP相关
+3. JMX相关
+4. 各类操作系统相关
+5. SNMP相关
+6. 虚拟机相关
 **修改maps**
 
 * 修改lable
@@ -20,6 +39,7 @@
 {linux-node1.oldboyedu.com:net.if.out[eth0].last(0)}
 </pre>
 
+> 这个功能可以用来做一些自己想实时了解的主机之间的流量监控,通过图形做出来后架构会更清晰
 
 ### 报警
 
@@ -37,20 +57,21 @@
 
 设置报警需要设置三个地方：Aactions   Media types   Users-Media
 
+Actions里面设置内容包括:短信内容、发送条件（默认是item状态为PROBLEM时）、执行操作（执行命令或发送消息，发送方式、发送给哪个用户等）
+Users-Media Types里面主要用来设置发送消息的几种方式（邮件、脚本，默认只有邮件可以用，可以新建通过脚本的方式来做报警方式）
+Users-Media  这里主要定义的是该zabbix用户绑定的邮箱是哪个
 ##### 完整的告警流程
 
 > 模拟新人入职
 
-1. 创建用户组
-	1. ops  权限(可以添加读写，只读)   权限只能按用户组分配
-
+* 创建用户组
+	* ops  权限(可以添加读写，只读)   权限只能按用户组分配(这里可以设短信内置对所有主机模板等一些资源的权限,有只读/读写/拒绝)
 2. 添加用户
 3. 设置报警媒介
-4. Action
+4. Action（这里主要是把相应的报警项权限给新用户）
 
 > 如果新加一台机器，又新加了一个用户，这时要看一下这个用户是不是有这些机器的权限。
 > 添加新主机后，要确认权限分配
-
 
 ## 生产案例实战 
 
@@ -70,31 +91,56 @@
 	2. 使用IPMI监控服务器硬件 
 	3. 使用Agent监控服务器
 	4. 使用JMX监控JAVA应用 
-	5. 监控MySQL
+	5. 使用percona的模板监控MySQL
 	6. 监控WEB状态
 	7. 监控Nginx状态
 
 ### 实施监控
 
 ###### SNMP监控
-* 交换机上开启SNMP
-	
+***设备配置***
+
+* 思科交换机配置命令
 <pre>
 snmp-server community public ro
 </pre>
-
-* 在zabbix上添加监控
-
-可以使用GNS3来模拟网络设备
-
+* H3C交换机配置命令
 <pre>
-configure    host    create host   switch-node1     Newo Group(switch-group)    
+system-view
+snmp-agent sys-info version v1 v2c
+snmp-agent community read public
+</pre>
+* Centos7配置SNMP2
+<pre>
+[root@localhost snmp]# grep -vE '#|^$' snmpd.conf 
+com2sec notConfigUser  default       public
+group   notConfigGroup v1           notConfigUser
+group   notConfigGroup v2c           notConfigUser
+view    systemview    included   .1.3.6.1.2.1.1
+view    systemview    included   .1.3.6.1.2.1.25.1.1
+access  notConfigGroup ""      any       noauth    exact  all	none none
+           incl/excl subtree                          mask
+view all    included  .1                               80
+ -or just the mib2 tree-
+view mib2   included  .iso.org.dod.internet.mgmt.mib-2 fc
+access  notConfigGroup ""      any       noauth    exact  roview rwview none
+syslocation Unknown (edit /etc/snmp/snmpd.conf)
+syscontact Root <root@localhost> (configure /etc/snmp/snmp.local.conf)
+dontLogTCPWrappersConnects yes
+</pre>
 
-SNMP interfaces   port
+***WEB界面添加监控***
+
+
+如配置交换机（可以使用GNS3来模拟网络设备）
+
+* 填写基本信息
+<pre>
+configure-->host-->create host-->switch-node1-->New Group(switch-group)-->SNMP interfaces-->port
 </pre>
  
 * 关联监控模板（SNMP Device,可以监控防火墙、路由器、交换机）
-* 设置SNMP团体名称(Macros   {$SNMP_COMMUNITY} ＝ oldboyedu
+* 设置SNMP团体名称(Macros   {$SNMP_COMMUNITY} ＝ public
 
 > 为什么要加宏？  因为模板里面的items里面需要用到这个变量
 
