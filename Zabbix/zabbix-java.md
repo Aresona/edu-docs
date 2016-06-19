@@ -14,7 +14,8 @@
 5. USER-DEFINED MONITORED PARAMETERS
 6. LOADABLE MODULES
 7. TLS-RELATED PARAMETERS
-8. 
+
+
 ###### web配置（通过克隆的方式）
 
 主机 --> 全部克隆 --> 修改 --> templates选 OS Linux
@@ -76,7 +77,7 @@ Users-Media  这里主要定义的是该zabbix用户绑定的邮箱是哪个
 
 ## 生产案例实战 
 
-架构图见doc
+![监控实验架构图](https://github.com/Aresona/edu-docs/blob/master/image/%E7%9B%91%E6%8E%A7%E7%9B%B8%E5%85%B3/%E7%9B%91%E6%8E%A7%E6%9E%B6%E6%9E%84%E5%AE%9E%E9%AA%8C%E5%9B%BE.png)
 
 > 无论再小的架构，也要先规划
 
