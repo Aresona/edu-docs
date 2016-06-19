@@ -14,6 +14,7 @@
 5. USER-DEFINED MONITORED PARAMETERS
 6. LOADABLE MODULES
 7. TLS-RELATED PARAMETERS
+8. 
 ###### web配置（通过克隆的方式）
 
 主机 --> 全部克隆 --> 修改 --> templates选 OS Linux
@@ -145,7 +146,8 @@ configure-->host-->create host-->switch-node1-->New Group(switch-group)-->SNMP i
 > 为什么要加宏？  因为模板里面的items里面需要用到这个变量
 
 添加完毕后它会做端口的自动发现，这里有一些截图，每个端口都会有触发器，并且可以看到每个端口的一些流量图
-
+![](https://github.com/Aresona/edu-docs/blob/master/image/%E7%9B%91%E6%8E%A7%E7%9B%B8%E5%85%B3/%E4%BA%A4%E6%8D%A2%E6%9C%BA%E7%9B%B8%E5%85%B3%E5%9B%BE1.png)
+![](https://github.com/Aresona/edu-docs/blob/master/image/%E7%9B%91%E6%8E%A7%E7%9B%B8%E5%85%B3/%E4%BA%A4%E6%8D%A2%E6%9C%BA%E7%9B%B8%E5%85%B3%E5%9B%BE2.png)
 
 ###### IPMI监控
 
