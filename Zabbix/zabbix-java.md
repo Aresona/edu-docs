@@ -75,6 +75,12 @@ Users-Media  这里主要定义的是该zabbix用户绑定的邮箱是哪个
 > 如果新加一台机器，又新加了一个用户，这时要看一下这个用户是不是有这些机器的权限。
 > 添加新主机后，要确认权限分配
 
+可以为三种事件源定义动作
+
+* Triggers - when trigger status changes#触发器动作设置是报警信息常用的
+* Discovery - when discovery takes place
+* Auto registration - when new active agents auto-register
+
 ## 生产案例实战 
 
 ![监控实验架构图](https://github.com/Aresona/edu-docs/blob/master/image/%E7%9B%91%E6%8E%A7%E7%9B%B8%E5%85%B3/%E7%9B%91%E6%8E%A7%E6%9E%B6%E6%9E%84%E5%AE%9E%E9%AA%8C%E5%9B%BE.png)
@@ -156,9 +162,8 @@ configure-->host-->create host-->switch-node1-->New Group(switch-group)-->SNMP i
 
 *常用命令*
 
-	ipmitool set list        看日志
-	
-	ipmitool sensor list	看温度 	
+	ipmitool set list 
+	ipmitool sensor list 	
 
 > 另外就算用了IPMI接口，它自带的IPMI的模板不好使，对不上，很多值获取不到，每台机器可能都不一样。
 
@@ -178,9 +183,9 @@ JMX三种监控类型：1.无密码认证  2. 用户名密码认证，  3. ssl
 
 zabbix默认提供了一个能监控JAVA应用的JMX接口（zabbix java gateway）,它就是用java写的
 
-安装java-geteway,可以理解成一个代理，跟zabbix server完全没有关系
+java-geteway可以理解成一个代理，它跟zabbix server完全独立的两个程序
 
-监控java应用的原理 ，如图在doc
+![监控java应用的原理](https://github.com/Aresona/edu-docs/blob/master/image/%E7%9B%91%E6%8E%A7%E7%9B%B8%E5%85%B3/zabbix%E7%9B%91%E6%8E%A7JMX%E5%8E%9F%E7%90%86%E7%A4%BA%E6%84%8F%E5%9B%BE.png)
 
 它不存任何的数据，它就是一个代理
 
