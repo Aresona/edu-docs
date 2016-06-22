@@ -189,7 +189,7 @@ java-geteway可以理解成一个代理，它跟zabbix server完全独立的两�
 
 它不存任何的数据，它就是一个代理
 
-安装及配置文件路径
+*安装及配置文件路径*
 
 <pre>
 yum install -y zabbix-java-gateway java-1.8.0
@@ -229,19 +229,19 @@ netstat -lntup|grep 8080
 
 ***remote monitor***
 
-vim /usr/local/tomcat/bin/catalina.sh
-	   CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote
-  -Dcom.sun.management.jmxremote.port=8888
-  -Dcom.sun.management.jmxremote.ssl=false
-  -Dcom.sun.management.jmxremote.authenticate=false
-  -Djava.rmi.server.hostname=192.168.56.12"
+	vim /usr/local/tomcat/bin/catalina.sh
+		   CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote
+	  -Dcom.sun.management.jmxremote.port=8888
+	  -Dcom.sun.management.jmxremote.ssl=false
+	  -Dcom.sun.management.jmxremote.authenticate=false
+	  -Djava.rmi.server.hostname=192.168.56.12"
 
-重启tomcat
-shutdown.sh
-startup.sh
+*重启tomcat*
+
+	shutdown.sh
+	startup.sh
 
 这个模板自带的模块有很多没用的，需要自己看一下。jconsole
-
 
 ##### 手动检测监控状态
 
@@ -250,10 +250,7 @@ yum install -y zabbix-get
 zabbix_get -s 192.168.56.12 -k jmx["java.lang:type=Runtime",Uptime]
 </pre>
 
-
-
-安装java
-https://java.com/zh_CN/download/chrome.jsp
+[windows下安装java](https://java.com/zh_CN/download/chrome.jsp)
 
 
 ## 生产角度
