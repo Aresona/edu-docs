@@ -392,12 +392,11 @@ top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是
 
 salt '*' cmd.run 'w'
 
-
-#####请求与响应模式
+##### 请求与响应模式
 
 默认监听4506端口，返回结果的时候通过4506端口，
 
-把进程的标题显示出来
+####### 显示进程标题
 
 <pre>
 yum install -y python-setproctitle
@@ -407,11 +406,10 @@ ps -ef|grep salt-mast
 
 [相关文章介绍](https://www.unixhot.com/article/15)
 
-
 ### Saltstack的数据系统
 
+[SaltStack整体架构](http://www.cnblogs.com/alexyang8/p/3445333.html)
 两种数据系统
-
 
 *　Grains（谷粒）
 *　Pillar（柱子）
