@@ -379,11 +379,14 @@ top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是
 
 
 ## SaltStack与ZeroMQ
+ 我们进行自动化运维大多数情况下，是我们的服务器数量已经远远超过人工SSH维护的范围，SaltStack可以支数以千计，甚至更多的服务器。这些性能的提供主要来自于ZeroMQ，因为SaltStack底层是基于ZeroMQ进行高效的网络通信。ZMQ用于node与node间的通信，node可以是主机也可以是进程。
+### ZeroMQ简介
+  ZeroMQ（我们通常还会用ØMQ , 0MQ, zmq等来表示）是一个简单好用的传输层，像框架一样的一个套接字库，他使得Socket编程更加简单、简洁和性能更高。它还是一个消息处理队列库，可在多个线程、内核和主机盒之间弹性伸缩。
+发布与订阅 ZeroMQ支持Publish/Subscribe，即发布与订阅模式，我们经常简称Pub/Sub。
 
-ZeroMQ是一个消息队列，它不是传统意义上的消息队列，它是一个传输层的库，
-它有几种模式：
+![](https://www.unixhot.com/uploads/article/20151027/055f24981e25860e08942d7f0aa9d0ab.png)
 
-##### 发布与定阅模式（Publish/Subscribe）简称Pub/Sub
+##### 发布与订阅模式（Publish/Subscribe）简称Pub/Sub
 
 所有的minion都会连到4505端口，而且是TCP的长连接
 
@@ -402,7 +405,7 @@ systemctl restart salt-master
 ps -ef|grep salt-mast
 </pre>
 
-[有一篇文章](https://www.unixhot.com/uploads/article/20151027/055f24981e25860e08942d7f0aa9d0ab.png)
+[相关文章介绍](https://www.unixhot.com/article/15)
 
 
 ### Saltstack的数据系统
