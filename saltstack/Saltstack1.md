@@ -262,30 +262,30 @@ Salt通过 **状态模块** 来识别状态，所以需要写一个关于状态�
 
 > apache-install是定义的ID，pkg是一个状态模块，模块分为执行模块和状态模块，installed是模块中定义的函数方法
 
-> salt有很多的模块，它们都放在 `/usr/lib/python2.7/site-packages/salt` 下，而 `pkg.py` 是放在 `/usr/lib/python2.7/site-packages/salt/states` 目录下的，所以说它是一个状态模块；
+> salt有很多的模块，它们都放在 `/usr/lib/python2.7/site-packages/salt/modules` 下，而 `pkg.py` 是放在 `/usr/lib/python2.7/site-packages/salt/states` 目录下的，所以说它是一个状态模块；
 
 执行状态模块
 <pre>
 salt '*' state.sls web.apache
 </pre>
 
-> `state` 是一个模块（/usr/lib/python2.7/site-packages/salt/state.py），sls是它的一个方法，它的作用就是 `Execute the states in one or more SLS files` ，这些状态文件是放在环境下的，并且这些状态文件里面会调用state的状态模块（/usr/lib/python2.7/site-packages/salt/states）。
+> `state` 是一个模块（/usr/lib/python2.7/site-packages/salt/modules/state.py），sls是它的一个方法，它的作用就是 `Execute the states in one or more SLS files` ，这些状态文件是放在环境下的，并且这些状态文件里面会调用state的状态模块（/usr/lib/python2.7/site-packages/salt/states）。
 
-/var/cache/salt/minion
+> /var/cache/salt/minion是一个很重要的目录，一般master把文件发给minion并放在这个目录下,minion从上往下加载
 
-master把文件发给minion,minion从上往下加载
-
-出现的错误
+###### 遇到的错误
 
 <pre>
 Salt request timed out. The master is not responding. If this error persists after verifying the master is up, worker_threads may need to be increased.
 </pre>
 
+###### 执行小技巧
+
 > 已经有的是绿色，新完成的是浅绿色
 
-### 对应关系文件
+### 通过 `top.sls`来有选择地执行状态文件 
 
-也是sls结尾，也是YAML。它放在base环境下，也就是这里的/srv/salt下
+top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是这里的/srv/salt下
 <pre>
 # The state system uses a "top" file to tell the minions what environment to
 # use and what modules to use. The state_top file is defined relative to the
@@ -301,7 +301,7 @@ Salt request timed out. The master is not responding. If this error persists aft
 	    - web.apache
 	EOF
 
-执行高级状态
+##### 执行高级状态
 
 	[root@linux-node1 salt]# salt '*' state.highstate
 	linux-node2.example.com:
