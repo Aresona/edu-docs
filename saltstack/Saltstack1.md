@@ -853,7 +853,8 @@ linux-node1.example.com:
     tmpfs            98M     0   98M   0% /run/user/0
 </pre>
 
-<div style="width:100px;height:100px;box-shadw:0px 0px 3px #000;>
+
+<div style="width:100px;height:100px;box-shadw:0px 0px 3px #000;" >
 		<img src="https://github.com/Aresona/edu-docs/blob/master/image/touxiang.jpg" />
 </div>
 
