@@ -854,7 +854,7 @@ linux-node1.example.com:
 </pre>
 
 
-<div style="width:100px;height:100px;box-shadw:0px 0px 3px #000;" >
+<div style="box-shadw:0px 0px 3px #000;" markdown="1" >
 		<img src="https://github.com/Aresona/edu-docs/blob/master/image/touxiang.jpg" />
 </div>
 
