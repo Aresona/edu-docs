@@ -39,6 +39,8 @@ SaltStack是用python语言写的，提供了API、支持多种操作系统（�
 
 1. 通过epel源安装
 2. 通过saltstack自己的仓库安装
+
+
 <pre>
 yum install https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el7.noarch.rpm -y
 </pre>
