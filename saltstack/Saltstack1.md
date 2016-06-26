@@ -20,7 +20,7 @@ SaltStack是用python语言写的，提供了API、支持多种操作系统（�
 
 
 
-### 四种运行方式
+### SaltStack 四种运行方式
 
 * Local
 * Master/Minion（传统C/S架构）
@@ -219,9 +219,9 @@ Salt通过 **状态模块** 来识别状态，所以需要写一个关于状态�
 
 > saltstack配置文件也是YAML语法。
 
-#### 写一个模板文件
+#### 写一个状态文件
 
-##### 编辑Master配置文件
+编辑Master配置文件
 
 `/etc/salt/master`
 
@@ -283,7 +283,7 @@ Salt request timed out. The master is not responding. If this error persists aft
 
 > 已经有的是绿色，新完成的是浅绿色
 
-### 通过 `top.sls`来有选择地执行状态文件 
+#### 通过 `top.sls`来有选择地执行状态文件 
 
 top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是这里的/srv/salt下
 <pre>
@@ -378,7 +378,7 @@ top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是
 > 生产中不建议用* ,以后不能这样写命令，要先 `salt '*' state.highstate test=True` 
 
 
-### SaltStack与ZeroMQ
+## SaltStack与ZeroMQ
 
 ZeroMQ是一个消息队列，它不是传统意义上的消息队列，它是一个传输层的库，
 它有几种模式：
