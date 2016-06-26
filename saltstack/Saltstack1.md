@@ -2,9 +2,13 @@
 
 ## 简介
 
-它是通过python来写的，也提供了API、支持多种操作系统（所有类Unix系统都默认安装Python），windows只能安装Minion
+SaltStack是用python语言写的，提供了API、支持多种操作系统（所有类Unix系统都默认安装Python），windows只能安装Minion端程序。
 
-### 三大功能：
+[官网](https://saltstack.com/)
+
+[中国SaltStack用户组](http://www.saltstack.cn)
+
+### SaltStack 三大功能：
 
 * 远程执行
 * 配置管理（状态、很难回滚）
@@ -12,74 +16,70 @@
 
 > 运维三板斧：监控、执行、配置管理
 
-竞争对手：Puppet(ruby)、Ansible（python）
+类似软件：Puppet(ruby)、Ansible（python）
 
-[官网](https://saltstack.com/)
 
-[中国SaltStack用户组](http://www.saltstack.cn)
 
 ### 四种运行方式
 
 * Local
 * Master/Minion（传统C/S架构）
-* Syndic <---> zabbix proxy
+* Syndic（对应于zabbix的proxy)
 * Salt SSH
 
-> 虽然很多人不想装Minion,但是最佳的解决方案就是装一个Minion
+> 由于C/S模式需要在每台客户端机器上安装Salt-Minion,很多人会觉得麻烦,但是最佳的体验就是装一个Minion。
 
 ### 典型案例
 
 阿里大数据部门、360的远程执行
 
-## 操作
+## QUICK START
 
 ### 安装
 
-1. 可以通过epel源来做
-2. 通过saltstack自己的仓库
-
+1. 通过epel源安装
+2. 通过saltstack自己的仓库安装
 <pre>
 yum install https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el7.noarch.rpm -y
 </pre>
 
-Master端
+######  Master端
 <pre>
 yum install salt-master salt-minion -y
 </pre>
 
-Minion端
+###### Minion端
 <pre>
 yum install salt-minion -y
 </pre>
 
-
-#### windows安装
+######  windows下Minion安装
 <pre>
 Salt-Minion-2016.3.1-AMD64-Setup.exe /S /master=yoursaltmaster /minion-name=yourminionname
 </pre>
 
-### 配置并启动
+### 配置及启动
 
-#### 启动salt-master
+###### 启动salt-master
 <pre>
 systemctl start salt-master
 </pre>
 
-#### 配置并启动minion
+###### 配置并启动minion
 <pre>
 sed -i 's/# master: salt/master: 192.168.56.11/' /etc/salt/minion
 systemctl start salt-minion
-## 另外一个重要的参数就是id,每个minion都有一个单独的ID，它就是当前目录下，如果不改的话，默认就是主机名
+</pre>
+另外一个重要的参数就是id,每个minion都有一个单独的ID，它也放在 	`/etc/salt` 目录下，如果不改的话，默认就是主机名
+<pre>
 [root@linux-node2 salt]# cat minion_id 
-linux-node2.oldboyedu.com
+linux-node2.example.com
 </pre>
 
-> 这个ID不建议改，如果要改的话，要先把这个文件删除了。因为它会首先读这个文件
-> 生产中可以用主机名，id可以不配，如果不配，它就会用主机名
+> 这个ID不建议改，如果要改的话，要先把这个文件删除了。因为master会首先读这个文件，生产中可以用主机名，id可以不配，如果不配，它就会用主机名。
 
 ### 认证
-它是通过AES来加密的，所以不需要关注安全性问题
-只要启动Minion的时候就会建立在/etc/salt下建立一个pki的目录，并把里面的公钥发给Master端
+SaltStack是通过AES来加密的，所以一般不需要关注安全性问题，一般Minion启动的时候就会在/etc/salt下建立一个pki的目录，生成密钥对并把里面的公钥发给Master端。
 <pre>
 [root@linux-node2 salt]# tree pki
 pki
@@ -96,32 +96,31 @@ pki/
 │   ├── minions_autosign
 │   ├── minions_denied
 │   ├── minions_pre
-│   │   ├── linux-node1.oldboyedu.com		Minion发过来的两个私钥
-│   │   └── linux-node2.oldboyedu.com		使用Minion——ID来做私钥的名称
+│   │   ├── linux-node1.example.com		Minion发过来的两个私钥
+│   │   └── linux-node2.example.com		默认会使用Minion_ID来做私钥的名称
 │   └── minions_rejected
 └── minion
     ├── minion.pem		Minion私钥
     └── minion.pub		Minion公钥
-[root@linux-node1 salt]# md5sum pki/master/minions_pre/linux-node2.oldboyedu.com 
-eed44ea7c9d65c7aeddd56dedcebd3df  pki/master/minions_pre/linux-node2.oldboyedu.com
+[root@linux-node1 salt]# md5sum pki/master/minions_pre/linux-node2.example.com 
+eed44ea7c9d65c7aeddd56dedcebd3df  pki/master/minions_pre/linux-node2.example.com
 [root@linux-node2 salt]# md5sum pki/minion/minion.pub 
 eed44ea7c9d65c7aeddd56dedcebd3df  pki/minion/minion.pub
 </pre>
-#### 认证相关
 
-##### 列出所有keys
+###### 列出所有keys
 <pre>
 [root@linux-node1 salt]# salt-key 
 Accepted Keys:
 Denied Keys:
 Unaccepted Keys:
-linux-node1.oldboyedu.com
-linux-node2.oldboyedu.com
+linux-node1.example.com
+linux-node2.example.com
 Rejected Keys:
 </pre>
-##### 同意所有keys
+###### Master端同意所有申请管理的Minion端keys
 <pre>
-salt-key -a linux-node1.oldboyedu.com
+salt-key -a linux-node1.example.com
 salt-key -a linux-node*
 salt-key -A
 [root@linux-node1 salt]# tree pki/
@@ -130,46 +129,46 @@ pki/
 │   ├── master.pem
 │   ├── master.pub
 │   ├── minions
-│   │   ├── linux-node1.oldboyedu.com		## Master同意
-│   │   └── linux-node2.oldboyedu.com
+│   │   ├── linux-node1.example.com		## Master同意
+│   │   └── linux-node2.example.com
 │   ├── minions_autosign
 │   ├── minions_denied
 │   ├── minions_pre
 │   └── minions_rejected
 └── minion
-    ├── minion_master.pub		## 这个是Master的公钥
+    ├── minion_master.pub		## 这个是Master的公钥（认证后Master端会把自己的公钥发给Minion端）
     ├── minion.pem
     └── minion.pub
 </pre>
 
 > 认证的过程就是公钥交换的过程，改完ID后所有的认证就得重新来做一遍
 
-#### ID的设置
+### ID的设置
 
-一个是主机名，另外一个就是IP地址，这时就需要看业务了，如果业务不确定就用IP地址，如果业务确定就用主机名（idc01-bj-product-node1.shop.com）,DNS解析主机名不支持下滑线
+ID设置有两种方式，一种是主机名，另外一种是通过IP地址，这时就需要看业务了，如果业务不确定就使用IP地址，如果业务确定就用主机名（idc01-bj-product-node1.shop.com）,DNS解析主机名不支持下滑线
 
 ### 远程执行
 	salt '*' test.ping		## 引起来是因为 * 在shell下也是有意义的
 
-> test是一个模块，ping是这个模块下面的一个方法，它是python的标准；这个ping不是ICMP的ping,它是saltmaster和minion之间的一个通信，用的也不是ICMP的协议
+> test是一个模块，ping是这个模块下面的一个方法，它是python的标准；这个ping不是ICMP的ping，它是saltmaster和minion之间的一个通信，用的也不是ICMP的协议
 
-	salt "linux-node1.oldboyedu.com" cmd.run 'w'		## 命令一般也要引起来，方便传参
+	salt "linux-node1.example.com" cmd.run 'w'		## 命令一般也要引起来，方便传参
 操作实例：
 
 	[root@linux-node1 salt]# salt '*' cmd.run 'mkdir hehe'
-	linux-node2.oldboyedu.com:
-	linux-node1.oldboyedu.com:
+	linux-node2.example.com:
+	linux-node1.example.com:
 	[root@linux-node1 salt]# salt '*' cmd.run 'ls -l'
-	linux-node2.oldboyedu.com:
+	linux-node2.example.com:
 	    total 4
 	    -rw-------. 1 root root 1175 May 20 06:37 anaconda-ks.cfg
 	    drwxr-xr-x  2 root root    6 Jun 25 21:01 hehe
-	linux-node1.oldboyedu.com:
+	linux-node1.example.com:
 	    total 4
 	    -rw-------. 1 root root 1175 May 20 06:37 anaconda-ks.cfg
 	    drwxr-xr-x  2 root root    6 Jun 25 21:01 hehe
 
-后面会学ACL来控制权限，它很危险，可以执行删除操作
+后面可以通过ACL来控制权限，它很危险，可以执行删除操作
 
 ### 配置管理 
 
@@ -259,16 +258,16 @@ Salt request timed out. The master is not responding. If this error persists aft
 
 	cat > top.sls <<EOF
 	base:
-	  'linux-node1.oldboyedu.com':
+	  'linux-node1.example.com':
 	    - web.apache
-	  'linux-node2.oldboyedu.com':
+	  'linux-node2.example.com':
 	    - web.apache
 	EOF
 
 执行高级状态
 
 	[root@linux-node1 salt]# salt '*' state.highstate
-	linux-node2.oldboyedu.com:
+	linux-node2.example.com:
 	----------
 	          ID: apache-install
 	    Function: pkg.installed
@@ -297,13 +296,13 @@ Salt request timed out. The master is not responding. If this error persists aft
 	    Duration: 27.567 ms
 	     Changes:   
 	
-	Summary for linux-node2.oldboyedu.com
+	Summary for linux-node2.example.com
 	------------
 	Succeeded: 3
 	Failed:    0
 	------------
 	Total states run:     3
-	linux-node1.oldboyedu.com:
+	linux-node1.example.com:
 	----------
 	          ID: apache-install
 	    Function: pkg.installed
@@ -332,7 +331,7 @@ Salt request timed out. The master is not responding. If this error persists aft
 	    Duration: 35.008 ms
 	     Changes:   
 	
-	Summary for linux-node1.oldboyedu.com
+	Summary for linux-node1.example.com
 	------------
 	Succeeded: 3
 	Failed:    0
@@ -389,8 +388,8 @@ Grains是静态数据，它是在Minion启动的时候收集的Minion本地的�
 
 查看所有信息
 <pre>
-salt 'linux-node1.oldboyedu.com' grains.ls
-salt 'linux-node1.oldboyedu.com' grains.items
+salt 'linux-node1.example.com' grains.ls
+salt 'linux-node1.example.com' grains.items
 salt '*' grains.item os
 salt '*' grains.item fqdn_ip4
 </pre>
@@ -411,16 +410,16 @@ grains:
   roles: apache 
 systemctl restart salt-minion
 [root@linux-node1 salt]# salt '*' grains.item roles
-linux-node2.oldboyedu.com:
+linux-node2.example.com:
     ----------
-    rolesode1.oldboyedu.com:
+    rolesode1.example.com:
     ----------
     roles:
 [root@linux-node1 salt]# salt '*' grains.item roles
-linux-node1.oldboyedu.com:
+linux-node1.example.com:
     ----------
     roles:
-linux-node2.oldboyedu.com:
+linux-node2.example.com:
     ----------
     roles:
         apache:
@@ -443,7 +442,7 @@ grains还可以用到top.sls文件里面
 
 <pre>
 base:
-  'linux-node1.oldboyedu.com':
+  'linux-node1.example.com':
     - web.apache
   'roles:apache': 
     - match: grain 
@@ -477,7 +476,7 @@ def my_grains():
     grains = {}
     # 设置字典中的key/value
     grains['iaas'] = 'openstack'
-    grains['edu'] = 'oldboyedu'
+    grains['edu'] = 'example'
     # 返回这个字典
     return grains
 </pre>
@@ -601,10 +600,10 @@ salt '*' cmd.run 'w'
 
 ##### 有关的
 
-1. Minion id(linux-node1.oldboyedu.com)
-2. 通配符(*/linux-node**/linux-node[1|2].oldboyedu.com/linux-node?.oldboyedu.com)
-3. 列表：（salt -L 'linux-node1.oldboyedu.com,linux-node2.oldboyedu.com' test.ping）
-4. 正则表达式：（salt -E 'linux-(node1|node2)*' test.ping|salt -E 'linux-(node1|node2).oldboyedu.com' test.ping）
+1. Minion id(linux-node1.example.com)
+2. 通配符(*/linux-node**/linux-node[1|2].example.com/linux-node?.example.com)
+3. 列表：（salt -L 'linux-node1.example.com,linux-node2.example.com' test.ping）
+4. 正则表达式：（salt -E 'linux-(node1|node2)*' test.ping|salt -E 'linux-(node1|node2).example.com' test.ping）
 
 > 所有匹配目标的方式都可以用在top file里面来指定目标 
 
@@ -641,7 +640,7 @@ vim /etc/salt/master
 /nodegroup
 
 nodegroups:
-  web: 'L@linux-node1.oldboyedu.com,linux-node2.oldboyedu.com'
+  web: 'L@linux-node1.example.com,linux-node2.example.com'
 systemctl restart salt-master
 salt -N web test.ping
 
@@ -748,9 +747,9 @@ systemctl restart salt-minion
 执行结果：
 <pre>
 [root@linux-node1 salt]# salt '*' test.ping --return mysql
-linux-node2.oldboyedu.com:
+linux-node2.example.com:
     True
-linux-node1.oldboyedu.com:
+linux-node1.example.com:
     True
 [root@linux-node1 salt]# mysql
 Welcome to the MariaDB monitor.  Commands end with ; or \g.
@@ -780,8 +779,8 @@ MariaDB [salt]> select * from salt_returns;
 +-----------+----------------------+--------+---------------------------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 | fun       | jid                  | return | id                        | success | full_ret                                                                                                                                              | alter_time          |
 +-----------+----------------------+--------+---------------------------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
-| test.ping | 20160626025439671711 | true   | linux-node2.oldboyedu.com | 1       | {"fun_args": [], "jid": "20160626025439671711", "return": true, "retcode": 0, "success": true, "fun": "test.ping", "id": "linux-node2.oldboyedu.com"} | 2016-06-26 02:54:39 |
-| test.ping | 20160626025439671711 | true   | linux-node1.oldboyedu.com | 1       | {"fun_args": [], "jid": "20160626025439671711", "return": true, "retcode": 0, "success": true, "fun": "test.ping", "id": "linux-node1.oldboyedu.com"} | 2016-06-26 02:54:39 |
+| test.ping | 20160626025439671711 | true   | linux-node2.example.com | 1       | {"fun_args": [], "jid": "20160626025439671711", "return": true, "retcode": 0, "success": true, "fun": "test.ping", "id": "linux-node2.example.com"} | 2016-06-26 02:54:39 |
+| test.ping | 20160626025439671711 | true   | linux-node1.example.com | 1       | {"fun_args": [], "jid": "20160626025439671711", "return": true, "retcode": 0, "success": true, "fun": "test.ping", "id": "linux-node1.example.com"} | 2016-06-26 02:54:39 |
 +-----------+----------------------+--------+---------------------------+---------+-------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+
 2 rows in set (0.00 sec)
 </pre>
@@ -834,7 +833,7 @@ def list():
 └── sls.p
 
 [root@linux-node1 _modules]# salt '*' my_disk.list
-linux-node2.oldboyedu.com:
+linux-node2.example.com:
     Filesystem      Size  Used Avail Use% Mounted on
     /dev/sda3       196G  2.1G  194G   2% /
     devtmpfs        480M     0  480M   0% /dev
@@ -843,7 +842,7 @@ linux-node2.oldboyedu.com:
     tmpfs           489M     0  489M   0% /sys/fs/cgroup
     /dev/sda1       497M  128M  370M  26% /boot
     tmpfs            98M     0   98M   0% /run/user/0
-linux-node1.oldboyedu.com:
+linux-node1.example.com:
     Filesystem      Size  Used Avail Use% Mounted on
     /dev/sda3       196G  2.3G  194G   2% /
     devtmpfs        480M     0  480M   0% /dev
@@ -853,6 +852,11 @@ linux-node1.oldboyedu.com:
     /dev/sda1       497M  128M  370M  26% /boot
     tmpfs            98M     0   98M   0% /run/user/0
 </pre>
+
+<div style="width:100px;height:100px;box-shadw:0px 0px 3px #000;>
+		<img src="https://github.com/Aresona/edu-docs/blob/master/image/touxiang.jpg" />
+</div>
+
 
 作业
 预习配置管理
