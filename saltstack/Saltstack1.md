@@ -491,8 +491,8 @@ base:
 
 
 #### 配置管理的案例
-
-vim /srv/salt/web/apache.sls
+	
+	vim /srv/salt/web/apache.sls
 
 
 > 可以自己用python脚本来写一个grains，实现动态，这里说的动态是通过逻辑后产生的
@@ -585,6 +585,7 @@ salt '*' saltutil.refresh_pillar
 salt '*' pillar.items apache
 </pre>
 
+<pre>
 vim apache.sls
 	hehe:
 		{% if grains['os'] == 'CetnOS' %}
@@ -593,9 +594,10 @@ vim apache.sls
 		apache: apache2
 		{% endif %}
 
-salt '*' saltutil.refresh_pillar
-salt '*' pillar.items hehe
 
+salt '*'saltutil.refresh_pillar
+salt '*' pillar.items hehe
+</pre>
 
 #### 使用场景
 
