@@ -1,8 +1,15 @@
+---
+title: sockstack
+date: 2016-06-26 17:43:18
+tags:
+---
 # 运维自动化之SaltStack
 
 ## 简介
 
 SaltStack是用python语言写的，提供了API、支持多种操作系统（所有类Unix系统都默认安装Python），windows只能安装Minion端程序。
+
+
 
 [官网](https://saltstack.com/)
 
@@ -18,7 +25,7 @@ SaltStack是用python语言写的，提供了API、支持多种操作系统（�
 
 类似软件：Puppet(ruby)、Ansible（python）
 
-
+<!--more-->
 
 ### SaltStack 四种运行方式
 
@@ -39,35 +46,33 @@ SaltStack是用python语言写的，提供了API、支持多种操作系统（�
 
 1. 通过epel源安装
 2. 通过saltstack自己的仓库安装
-
-
 <pre>
 yum install https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el7.noarch.rpm -y
 </pre>
 
-######  Master端
+####  Master端
 <pre>
 yum install salt-master salt-minion -y
 </pre>
 
-###### Minion端
+#### Minion端
 <pre>
 yum install salt-minion -y
 </pre>
 
-######  windows下Minion安装
+####  windows下Minion安装
 <pre>
 Salt-Minion-2016.3.1-AMD64-Setup.exe /S /master=yoursaltmaster /minion-name=yourminionname
 </pre>
 
 ### 配置及启动
 
-###### 启动salt-master
+#### 启动salt-master
 <pre>
 systemctl start salt-master
 </pre>
 
-###### 配置并启动minion
+#### 配置并启动minion
 <pre>
 sed -i 's/# master: salt/master: 192.168.56.11/' /etc/salt/minion
 systemctl start salt-minion
@@ -110,7 +115,7 @@ eed44ea7c9d65c7aeddd56dedcebd3df  pki/master/minions_pre/linux-node2.example.com
 eed44ea7c9d65c7aeddd56dedcebd3df  pki/minion/minion.pub
 </pre>
 
-###### 列出所有keys
+#### 列出所有keys
 <pre>
 [root@linux-node1 salt]# salt-key 
 Accepted Keys:
@@ -120,7 +125,7 @@ linux-node1.example.com
 linux-node2.example.com
 Rejected Keys:
 </pre>
-###### Master端同意所有申请管理的Minion端keys
+#### Master端同意所有申请管理的Minion端keys
 <pre>
 salt-key -a linux-node1.example.com
 salt-key -a linux-node*
@@ -208,12 +213,12 @@ Salt通过 **状态模块** 来识别状态，所以需要写一个关于状态�
 
 [SaltStack官方镜像文档](https://www.unixhot.com/docs/saltstack/index.html)
 
-##### 理解YAML
+#### 理解YAML
 
 > YAML是"YAML Ain't a Markup Language"（YAML不是一种置标语言）的递归缩写。它是类似于标准通用标记语言的子集XML的数据描述语言，语法比XML简单很多。因为它简单。
 > 
 
-###### 三个规则
+##### 三个规则
 
 1. 缩进（代表层级关系，2个空格，并且不能使用TAB键，整个saltstack里面都不能用TAB键）
 2. 冒号（1. 跟缩进一起代理层级目录（以冒号结尾不用空格）；2. 分隔键值对[key: value],支持嵌套，冒号后面必须有一个空格）
@@ -275,13 +280,13 @@ salt '*' state.sls web.apache
 
 > /var/cache/salt/minion是一个很重要的目录，一般master把文件发给minion并放在这个目录下,minion从上往下加载
 
-###### 遇到的错误
+#### 遇到的错误
 
 <pre>
 Salt request timed out. The master is not responding. If this error persists after verifying the master is up, worker_threads may need to be increased.
 </pre>
 
-###### 执行小技巧
+#### 执行小技巧
 
 > 已经有的是绿色，新完成的是浅绿色
 
@@ -381,24 +386,24 @@ top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是
 
 
 ## SaltStack与ZeroMQ
- 我们进行自动化运维大多数情况下，是我们的服务器数量已经远远超过人工SSH维护的范围，SaltStack可以支数以千计，甚至更多的服务器。这些性能的提供主要来自于ZeroMQ，因为SaltStack底层是基于ZeroMQ进行高效的网络通信。ZMQ用于node与node间的通信，node可以是主机也可以是进程。
+ 我们进行自动化运维大多数情况下，是我们的服务器数量已经远远超过人工SSH维护的范围，SaltStack可以支持数以千计，甚至更多的服务器。这些性能的提供主要来自于ZeroMQ，因为SaltStack底层是基于ZeroMQ进行高效的网络通信。ZMQ用于node与node间的通信，node可以是主机也可以是进程。
 ### ZeroMQ简介
   ZeroMQ（我们通常还会用ØMQ , 0MQ, zmq等来表示）是一个简单好用的传输层，像框架一样的一个套接字库，他使得Socket编程更加简单、简洁和性能更高。它还是一个消息处理队列库，可在多个线程、内核和主机盒之间弹性伸缩。
 发布与订阅 ZeroMQ支持Publish/Subscribe，即发布与订阅模式，我们经常简称Pub/Sub。
 
 ![](https://www.unixhot.com/uploads/article/20151027/055f24981e25860e08942d7f0aa9d0ab.png)
 
-##### 发布与订阅模式（Publish/Subscribe）简称Pub/Sub
+#### 发布与订阅模式（Publish/Subscribe）简称Pub/Sub
 
 所有的minion都会连到4505端口，而且是TCP的长连接
 
 salt '*' cmd.run 'w'
 
-##### 请求与响应模式
+#### 请求与响应模式
 
 默认监听4506端口，返回结果的时候通过4506端口，
 
-####### 显示进程标题
+#### 显示进程标题
 
 <pre>
 yum install -y python-setproctitle
@@ -408,17 +413,20 @@ ps -ef|grep salt-mast
 
 [相关文章介绍](https://www.unixhot.com/article/15)
 
-### Saltstack的数据系统
+## SaltStack的数据系统
 
 [SaltStack整体架构](http://www.cnblogs.com/alexyang8/p/3445333.html)
-两种数据系统
 
-*　Grains（谷粒）
-*　Pillar（柱子）
+saltstack有两种数据系统：
+
+* Grains（谷粒）
+* Pillar（柱子）
+
+### Grains
 
 Grains是静态数据，它是在Minion启动的时候收集的Minion本地的相关信息，如：操作系统版本，内核版本，ＣＰＵ，内存，硬盘，设备型号，机器序列号。它可以做资产管理，只要不重启它，它就会只收集一次，当重启的时候才会再次收集，启动完后就不会变了,它是一个key/value的东西。
 
-作用：
+**作用**：
 
 * 资产管理、信息查询
 * 用于目标选择（不同于ID的另外目标定义方法，操作系统等）
@@ -443,12 +451,17 @@ salt -G 'os:CentOS' test.ping
 salt -G 'os:CentOS' cmd.run 'echo hehe'
 </pre>
 
-可以给某一个minion自定义一个grains，然后再来找它，方法：写配置文件，有两种办法来存放 它
+可以给某一个minion自定义一个grains，然后再来找它，方法：
+写配置文件，有两种办法来存放它
 <pre>
 vim /etc/salt/minion
 grains:
   roles: apache 
-systemctl restart salt-minion
+</pre>
+
+	systemctl restart salt-minion
+
+<pre> 
 [root@linux-node1 salt]# salt '*' grains.item roles
 linux-node2.example.com:
     ----------
@@ -465,19 +478,20 @@ linux-node2.example.com:
         apache:
 </pre>
 
-重启所有apache
+#### 重启所有apache
 
 	salt -G 'roles:apache' cmd.run 'systemctl restart httpd'
 
 > 生产不建议放在minion配置文件里面，写在 `/etc/salt/grains` 里面，minion会自动来这找；并且上面这条命令中的roles:后面是没有空格的
 
-
+	vim /etc/salt/grains
 	cloud: openstack
+
 	salt '*' grains.item cloud
 
 > 加完之后必须重启，因为它是静态的。但不重启也有一个刷新的命令 `salt '*' saltutil.sync_grains` 无论上面两种方法写在哪都可以成功。
 
-#### top file使用案例
+### top file中使用grains案例
 grains还可以用到top.sls文件里面
 
 <pre>
@@ -490,8 +504,8 @@ base:
 </pre>
 
 
-#### 配置管理的案例
-	
+### 配置管理的案例
+
 	vim /srv/salt/web/apache.sls
 
 
@@ -501,13 +515,17 @@ base:
 
 写一个python脚本返回一个字典就可以了。
 
-1. 放哪儿
-	1. cd /srv/salt/
-	2. mkdir _grains
-	3. cd _grains
-2. 写脚本
-	1. vim my_grains.py
+* 放哪儿
+
 <pre>
+cd /srv/salt/
+mkdir _grains
+cd _grains
+</pre>
+* 写脚本
+
+<pre>
+vim my_grains.py
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
@@ -521,18 +539,20 @@ def my_grains():
     return grains
 </pre>
 
-3. 把grains推送给minion
+* 把grains推送给minion
 <pre>
 salt '*' saltutil.sync_grains
-它会放在/var/cache/salt/minion/extmods/grains/my_grains.py
 </pre>
-4. 查看
+
+> 它会放在/var/cache/salt/minion/extmods/grains/my_grains.py
+
+* 查看grains条目
 
 <pre>
 salt '*' grains.item iaas
 </pre>
 
-Grains优先级：
+#### Grains优先级：
 
 1. 系统自带
 2. grains文件写的
@@ -541,88 +561,134 @@ Grains优先级：
 
 
 
-### pillar
+### Pillar
 
-它也是数据系统，也是key/value，但是pillar数据是动态的，和minion启不启动没关系，它给特定的minion指定特定的数据，跟top file很像。只有指定的minion自己能看到自己的数据。
+#### 简介
 
-查看pillar
+它也是数据系统，也是定义一个key/value，但是pillar数据是动态的，和minion启不启动没关系，它会给特定的minion指定特定的数据，跟top file很像。只有指定的minion自己能看到自己的数据。
 
-	salt '*' pillar.items
+#### 使用
+* 查看pillar条目
 
-vim /etc/salt/master
-646  注释去掉。改成True
-
-
-systemctl restart salt-master
-
-
-
-pillar_toots  topfile.sls
 <pre>
-vim /etc/salt/master
-642行
-pillar_roots:
-  base:
-    - /srv/pillar
+salt '*' pillar.items
+</pre>
 
+* 在master端开启pillar功能
+
+修改配置文件/etc/salt/master并重启master服务 
+
+	pillar_opts: True
+	pillar_roots:
+	  base:
+	    - /srv/pillar
+	systemctl restart salt-master
+
+* 编辑相关配置文件
+
+编辑pillar的SLS文件
+<pre>
 mkdir /srv/pillar
 cd /srv/pillar
 mkdir web
 cd web
 vim apache.sls
-{% if grains['os'] == 'CetnOS' %}
+{% if grains['os'] == 'CentOS' %}
 apache: httpd
 {% elif grains['os'] == 'Debian' %}
 apache: apache2
 {% endif %}
 </pre>
 
-1. 写pillar的sls
-2. 写topfile(pillar必须要写topfile,不像配置管理不用也可以)
+编辑topfile(pillar必须要写topfile,不像配置管理不用也可以)
 
 <pre>
+base:
+  'linux-node2.oldboyedu.com':
+    - web.apache
 salt '*' saltutil.refresh_pillar
 salt '*' pillar.items apache
 </pre>
+效果如下：
+<pre>
+[root@linux-node1 web]# salt '*' pillar.items apache
+linux-node1.oldboyedu.com:
+    ----------
+    apache:
+linux-node2.oldboyedu.com:
+    ----------
+    apache:
+        httpd
+linux-node2.oldboyedu.com:
+    ----------
+    apache:
+</pre>
 
+* 修改上面的文件并熟悉一下层级的概念
 <pre>
 vim apache.sls
-	hehe:
-		{% if grains['os'] == 'CetnOS' %}
-		apache: httpd
-		{% elif grains['os'] == 'Debian' %}
-		apache: apache2
-		{% endif %}
-
-
-salt '*'saltutil.refresh_pillar
+hehe:
+  {% if grains['os'] == 'CentOS' %}
+  apache: httpd
+  {% elif grains['os'] == 'Debian' %}
+  apache: apache2
+  {% endif %}
+salt '*' saltutil.refresh_pillar
 salt '*' pillar.items hehe
-</pre>
+
+#### 个人理解
+
+topfile.sls规定哪个客户端经过哪个pillar判断文件的扫描，而web.apache就是那个判断文件的具体逻辑实现。
 
 #### 使用场景
 
-1. 目标选择
-	1. salt -I 'apache:httpd' test.ping
+目标选择
 
-
-这四种方式的匹配主要是为了在多机器环境下灵活地匹配主机
+	salt -I 'apache:httpd' test.ping
 
 ### Grains VS Pillar
 
-Grains:		类型		数据采集方式				应用场景						定义位置
+grians的items（roles）下可以是一个值，也可以是多个值，但是pillar的items下面还可以有多个items，它是一个嵌套的东西 ，它是一个真正的python字典的格式。
 
-Grains		静态		minion启动时收集		数据查询、目标选择、配置管理		minion端
+Grains | 类型 | 数据采集方式	|应用场景|定义位置|
+---- |----| --- | --- | --- | 
+Grains|	静态	|minion启动时收集	|数据查询、目标选择、配置管理|	minion端
+Pillar| 动态 | master自定义 | 目标选择、配置管理、敏感数据 | 存储	master端
 
+> 尽管看上去差不多，但是它们是有本质区别的，pillar数据是存储在master端，缓存在minion端的，而grains数据是存储在minion端，缓存在master端。
 
-	
-Pillar		动态		master自定义			目标选择、配置管理、敏感数据存储	master端
+相关文章：
 
+[区别](http://ohmystack.com/articles/salt-2-grains-and-pillar/)
+
+[stackoverflow](http://stackoverflow.com/questions/13115700/salt-stack-grains-vs-pillars)
+
+总体理解：
+
+grains和pillar的目的都是为了给一个定义一个客户端，而grains会定义一些比较基础的属性，因为它是静态的，给每个客户端定义所有的属性没必要也不现实；而pillar可以根据需求来给每一个客户端定义不同的属性，而这个前提就是它首先能通过minion id和grians找到它要定义的那个客户端;所以pillar的设计就在于它要补充grains的不足性，其次才是关于静态、保密的那些常见区别。
+
+| Differences                  | Grains                        | Pillars                             |
+|------------------------------|-------------------------------|-------------------------------------|
+| This is info which...        | ... Minion knows about itself | ... Minion asks Master about        |
+|                              |                               |                                     |
+| Distributed:                 | Yes (different per minion)    | No (single version per master)      |
+| Centralized:                 | No                            | Yes                                 |
+|                              |                               |                                     |
+| Computed automatically:      | Yes (preset/computed value)   | No (only rendered from Jinja/YAML)  |
+| Assigned manually:           | No (too elaborate)            | Yes (Jinja/YAML sources)            |
+|                              |                               |                                     |
+| Conceptually intrinsic to... | ... individual Minion node    | ... entire system managed by Master |
+| Data under revision control: | No (computed values)          | Yes (Jinja/YAML sources)            |
+|                              |                               |                                     |
+| They define rather...        | _provided_ resources          | _required_ resources                |
+|                              | (e.g. minion OS version)      | (e.g. packages to install)          |
+|                              |                               |                                     |
 
 ## 远程执行
 
 深入学习SaltStack远程执行
 
-salt '*' cmd.run 'w'
+	salt '*' cmd.run 'w'
 
 命令：salt
 
@@ -632,7 +698,7 @@ salt '*' cmd.run 'w'
 
 返回：可以写入数据库里面，执行后结果返回，通过Returnners组件
 
-#### 目标Targeting
+### 目标Targeting
 
 你要指定哪个或者哪些minion来执行后面的东西 ，怎么来定位？
 
@@ -640,17 +706,27 @@ salt '*' cmd.run 'w'
 1. 和minion id有关的
 2. 和Minion_id无关的
 
-##### 有关的
+#### 与minion_id有关的
 
-1. Minion id(linux-node1.example.com)
-2. 通配符(*/linux-node**/linux-node[1|2].example.com/linux-node?.example.com)
-3. 列表：（salt -L 'linux-node1.example.com,linux-node2.example.com' test.ping）
-4. 正则表达式：（salt -E 'linux-(node1|node2)*' test.ping|salt -E 'linux-(node1|node2).example.com' test.ping）
+* Minion id
+	
+		linux-node1.example.com
+
+* 通配符
+		
+		*/linux-node*/linux-node[1|2].example.com/linux-node?.example.com)
+
+* 列表
+		 
+		salt -L 'linux-node1.example.com,linux-node2.example.com' test.ping
+* 正则表达式
+		
+		salt -E 'linux-(node1|node2)*' test.ping|salt -E 'linux-(node1|node2).example.com' test.ping）
 
 > 所有匹配目标的方式都可以用在top file里面来指定目标 
 
 
-##### 无关的
+#### 与minion_id无关的
 
 主机名设置方案：
 
@@ -670,7 +746,7 @@ idc04   机房
 soa	业务线
 
   
-子网和IP地址
+##### 子网和IP地址
 <pre>
 salt -S 192.168.56.11 test.ping
 salt -S 192.168.56.0/24 test.ping
@@ -678,6 +754,7 @@ salt -S 192.168.56.0/24 test.ping
 
 ##### NODE GROUPS
 
+<pre>
 vim /etc/salt/master
 /nodegroup
 
@@ -685,51 +762,50 @@ nodegroups:
   web: 'L@linux-node1.example.com,linux-node2.example.com'
 systemctl restart salt-master
 salt -N web test.ping
-
+</pre>
 ##### 混合匹配 
 
-https://www.unixhot.com/docs/saltstack/topics/targeting/compound.html
+[官方文档](https://www.unixhot.com/docs/saltstack/topics/targeting/compound.html)
 
+	salt -C '* and not web-dc1-srv' test.ping
 ##### 批处理
 
 可以通过百分比来执行
 
-#### 模块
+### 模块
 
 saltstack内置了丰富的模块来执行,每一个模块都是一个python文件，挑几个来学习
 
-###### NETWORK
+#### NETWORK
 
 	salt '*' network.active_tcp
 	salt '*' network.arp
 
 
-###### SERVICE
+#### SERVICE
 
 	salt '*' service.available sshd
 	salt '*' service.get_all
 
-###### CP
+#### CP
 
 	salt-cp '*' /etc/hosts /tmp/hehe
 
-###### STATE
+#### STATE
 
 	salt '*' state.show_top
 	salt '*' state.single pkg.installed name=lsof
 
 ### 返回程序
 
-把返回结果写到数据库里面
+salt使用返回程序来实现把返回结果写到数据库里面(returnners)
+#### SALT.RETURNERS.MYSQL
 
-salt使用返回程序来实现这些功能(returnners)
-##### SALT.RETURNERS.MYSQL
+> Return data to mysql server
 
-Returnn data to mysql server
+这个返回数据是minion直接返回的(直接返回数据到数据库，而不经过master端，所有的minion要装python的MySQL 库
 
-这个返回数据是minion直接返回的，所有的minion要装python的MySQL 库
-
-我们使用salt装
+这里我们可以使用salt来安装
 
 <pre>
 salt '*' state.single pkg.installed name=MySQL-python
@@ -829,7 +905,7 @@ MariaDB [salt]> select * from salt_returns;
 
 ### 编写一个执行模块
 
-vim /usr/lib/python2.7/site-packages/salt/modules/service.py
+	vim /usr/lib/python2.7/site-packages/salt/modules/service.py
 
 编写模块：
 
@@ -894,7 +970,6 @@ linux-node1.example.com:
     /dev/sda1       497M  128M  370M  26% /boot
     tmpfs            98M     0   98M   0% /run/user/0
 </pre>
-
 
 <div style="box-shadw:0px 0px 3px #000;" markdown="1" >
 		<img src="https://github.com/Aresona/edu-docs/blob/master/image/touxiang.jpg" />
