@@ -763,11 +763,13 @@ nodegroups:
 systemctl restart salt-master
 salt -N web test.ping
 </pre>
+
 ##### 混合匹配 
 
 [官方文档](https://www.unixhot.com/docs/saltstack/topics/targeting/compound.html)
 
 	salt -C '* and not web-dc1-srv' test.ping
+
 ##### 批处理
 
 可以通过百分比来执行
@@ -911,6 +913,7 @@ MariaDB [salt]> select * from salt_returns;
 
 1. 放哪（cd /srv/salt/_modules）
 2. 命名（文件名就是模块名，如my_disk.py）
+
 <pre>
 [root@linux-node1 _modules]# cat my_disk.py 
 #!/usr/bin/env python
