@@ -207,7 +207,7 @@ ID设置有两种方式，一种是主机名，另外一种是通过IP地址，�
 [其他用法](http://arlen.blog.51cto.com/7175583/1424216)
 
 
-### 配置管理 
+### 状态模块 
 
 Salt通过 **状态模块** 来识别状态，所以需要写一个关于状态的文件，它是一个YAML格式的文件，并且文件名后缀以 `.sls` 结尾。
 
@@ -397,11 +397,11 @@ top文件也是sls结尾，也是YAML格式。它放在base环境下，也就是
 
 所有的minion都会连到4505端口，而且是TCP的长连接
 
-salt '*' cmd.run 'w'
+	salt '*' cmd.run 'w'
 
 #### 请求与响应模式
 
-默认监听4506端口，返回结果的时候通过4506端口，
+默认监听4505端口，返回结果的时候通过4506端口，
 
 #### 显示进程标题
 
@@ -451,8 +451,9 @@ salt -G 'os:CentOS' test.ping
 salt -G 'os:CentOS' cmd.run 'echo hehe'
 </pre>
 
-可以给某一个minion自定义一个grains，然后再来找它，方法：
-写配置文件，有两种办法来存放它
+通过写配置文件给某一个minion自定义一个grains
+
+##### 写配置文件
 <pre>
 vim /etc/salt/minion
 grains:
