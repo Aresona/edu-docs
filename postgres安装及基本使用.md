@@ -1,4 +1,4 @@
--# postgres安装
+# postgres安装
 
 ## 通过 `yum` 源安装
 
