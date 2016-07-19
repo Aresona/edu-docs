@@ -1,9 +1,8 @@
 # postgres安装
 
 ## 通过 `yum` 源安装
-
-<pre>
 下面这个repo是官方提供的，是最新的
+<pre>
 yum install http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-redhat94-9.4-1.noarch.rpm
 </pre>
 [可以通过这个网站来下载任意版本的repo文件](http://yum.postgresql.org/repopackages.php)
@@ -218,10 +217,12 @@ yum install barman -y
 > 通过YUM安装Barman后也会在系统中创建一个barman的用户，同样也没有密码，只能通过sudo用户切换过去
 
 * 创建这几台服务器之间的免密钥登录
+
 <pre>
 1. 保证主库及从库上的 postgres 用户可以免密钥登录到备份服务器上
 2. 保证备份服务器上的 barman 用户可以免密钥登录到主库及从库上。
 </pre>
+
 * 配置 barman 备份
 
 BARMAN的主要配置文件是 `/etc/barman.conf`。这个配置文件包含一个全局([barman])的配置和你想备份的每个服务器的配置。默认该文件包含一个叫做main的简单postgreSQL服务的部分，它默认是没有被注释的。可以把它当做模板来创建你想备份的。
