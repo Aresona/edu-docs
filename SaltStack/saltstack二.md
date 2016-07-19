@@ -2,10 +2,10 @@
 
 ## SLS
 
-SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式。salt最终执行的时候是一个字典的格式。
-
+SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式。salt最终执行的时候读取的是一个python字典。
+### 配置文件说明
 	[root@linux-node1 web]# cat apache.sls 
-	apache-install:		## ID（名称）声明，并且默认是name声明
+	apache-install:		## ID（名称）配置项声明，并且默认是name声明
 	  pkg.installed:	## Stage声明  状态声明
 	    - names:		## 选项声明
 	        - httpd
@@ -16,26 +16,26 @@ SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式�
 	    - name: httpd
 	    - enable: True
 
-> 高级状态中，ID必须唯一。
+> 高级状态中，ID必须唯一；默认我们在使用的时候也最好保持ID唯一，不管是不是在同一个模板中。
 
-https://www.unixhot.com/docs/saltstack/ref/states/highstate.html
+[highstate官方文档](https://www.unixhot.com/docs/saltstack/ref/states/highstate.html)
 
-### 写一个LAMP架构的配置管理文件
+## 写一个LAMP架构的配置管理文件
 
-规划：
+### 规划：
 
 1. 安装软件包
 2. 修改配置文件
 3. 启动服务
 
-> 上面这三个对应了三种状态模块，分别是pkg/file/service
+> 上面这三个对应了三种状态模块，分别是pkg、file、service模块
 
-[相关文档](https://www.unixhot.com/docs/saltstack/ref/states/all/index.html)
+[状态管理的官方文档](https://www.unixhot.com/docs/saltstack/ref/states/all/index.html)
 
-> 交换机解决的是冲突域，路由器解决的是广播域
 
 #### pkg模块
 
+	Installation of packages using OS package managers such as yum or apt-get
 * installed		安装
 * group_installed
 * latest		确保最新版本
@@ -567,4 +567,4 @@ rsyslog  一个环境里面有一个server端，它跟客户端的配置是不�
 ##### 架构师必备
 
 网络、系统、数据库、云计算、自动化、架构、开发、安全
-
+> 交换机解决的是冲突域，路由器解决的是广播域
