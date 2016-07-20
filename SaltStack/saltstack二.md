@@ -1,8 +1,9 @@
-# 状态管理
+# 配置（状态）管理
 
-## SLS
+状态是可以多次执行的，也就是说每一次执行状态它都会执行命令。如果你写的是一个安装软件的命令，每一次执行它也会执行。当使用 `cmd.run` 的时候它也会多次执行，如创建目录。如果使用状态管理的时候，它会检测有没有，没有才创建。
+## SLS文件
 
-SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式。salt最终执行的时候读取的是一个python字典。
+SLS是 `Salt State` 的缩写，它是一个描述文件，也是状态系统的核心，默认是YAML格式（也可以用其他语言）。因为它是python语言写的，解析的时候需要的参数是一个字典，所以不管什么语法只要最后能解析成一个字典就可以。
 ### 配置文件说明
 	[root@linux-node1 web]# cat apache.sls 
 	apache-install:		## ID（名称）配置项声明，并且默认是name声明
@@ -16,12 +17,142 @@ SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式�
 	    - name: httpd
 	    - enable: True
 
-> 高级状态中，ID必须唯一；默认我们在使用的时候也最好保持ID唯一，不管是不是在同一个模板中。
+> 高级状态中，ID必须唯一；无论什么时候我们在使用的时候也最好保持ID唯一，不管是不是在同一个模板中。
 
 [highstate官方文档](https://www.unixhot.com/docs/saltstack/ref/states/highstate.html)
 
-## 写一个LAMP架构的配置管理文件
+> 一个状态声明中只能包含一次函数声明
 
+## 模块说明
+#### pkg模块
+
+	Installation of packages using OS package managers such as yum or apt-get
+pkg是一个虚拟模块，也就是它会根据不同的操作系统来用不同的包管理器安装相关的包
+
+* installed		
+
+	安装
+
+* group_installed
+
+	安装组
+
+* latest
+
+	确保软件包是最新版本，如果不是就升级
+
+* removed 	
+
+确保软件包是被卸载的
+
+
+* purged
+
+	除了会把软件包卸载外还会把配置文件都删除掉
+
+> `installed` 方法有一个 `- fromrepo` 参数可以指定安装的repo文件，当然它需要跟 `pkgrepo.managed` 配合使用
+
+#### file模块
+
+Salt States可以积极地操作一个系统上的文件，一般文件可以被 `file.managed`强制执行；它首先从master端把文件下载下来，然后再替换掉原来的文件；我们可以在文件里面使用jinja等模板实现动态生成，
+##### managed
+
+* name
+* source
+<pre>salt://xxx/files/xxx.conf</pre>
+* user
+* group
+* mode
+
+#### service模块
+
+service状态通过 `minion` 端支持的服务模块来管理服务。另外,salt的执行模块和这个服务状态都是通过系统grains来确实哪个状态模块应该被加载并使用。所以一些特殊的系统可能会不准确。
+
+系统当前的状态取决于 `init/rc` 状态命令返回的编码，如果是0就代表正在运行。
+
+##### running
+
+* enalbe
+* reload
+* watch
+
+> watch主要用来当配置文件变化的时候重启该服务
+
+> 一个ID声明下面，一个状态模块不能重复使用,只能用一次
+
+### 状态间的依赖关系
+1. 我依赖谁	require
+2. 我被谁依赖		require_in
+3. 我监控谁		watch
+4. 我被谁监控		watch_in
+5. 我引用谁		include
+6. 我扩展谁
+
+#### Require
+<pre>
+apache-service:
+  service.running:
+    - name: httpd
+    - enable: True
+    - reload: True
+    - require:
+      - pkg: lamp-pkg
+      - file: apache-config 
+</pre>
+<pre>
+mysql-config:
+  file-managed:
+    - name: /etc/my.cnf
+    - source: salt://lamp/files/my.cnf
+    - user: root
+    - group: root
+    - mode: 644
+    - require_in:
+      - service: mysql-service 
+</pre>
+这里表示 `apache-service` 依赖安装包及配置文件，写法如下： `状态模块: ID`;另外在不同的sls之间也是可以调用的。
+#### Watch
+
+<pre>
+apache-service:
+  service.running:
+    - name: httpd
+    - enable: True
+    - reload: True
+    - require:
+      - pkg: lamp-pkg
+    - watch:
+      - file: apache-config 
+</pre>
+修改端口号测试有没有变化
+<pre>
+salt 'linux-node2*' state.sls lamp.init
+</pre>
+1. 如果apche-config 这个ID的状态发生变化就reload
+2. 如果不加reload=True的话就restart
+3. 以前必须学，现在就不那么重要了，因为现在有顺序了。
+#### Include
+
+首先写几个不同功能的SLS文件，如 `pkg.sls`、`config.sls`、`service.sls`。然后写一个总的文件来包含它们
+<pre>
+vim init.sls
+include:
+  - lamp.pkg
+  - lamp.config
+  - lamp.service
+
+salt 'linux-node2*' state.sls lamp.init
+</pre>
+
+> 这样写有一个好处就是别人也可以依赖，也就是原子化
+
+####  编写SLS技巧
+
+1. 按状态分类，如果单独使用，很清晰（pkg/config/service）
+2. 服务分类，可以被其他的SLS include.例如LNMP include mysql的服务。
+
+
+## 写一个LAMP架构的配置管理文件
 ### 规划：
 
 1. 安装软件包
@@ -31,38 +162,21 @@ SLS是 `Salt State` 的缩写，它是一个描述文件，默认是YAML格式�
 > 上面这三个对应了三种状态模块，分别是pkg、file、service模块
 
 [状态管理的官方文档](https://www.unixhot.com/docs/saltstack/ref/states/all/index.html)
+### 目录规划
 
+<pre>
+mkdir /srv/salt/lamp -p
+cd /srv/salt/lamp
+touch lamp.sls
+mkdir files
+cd files
+cp /etc/httpd/conf/httpd.conf .
+cp /etc/php.ini .
+cp /etc/my.cnf .
+</pre>
 
-#### pkg模块
-
-	Installation of packages using OS package managers such as yum or apt-get
-* installed		安装
-* group_installed
-* latest		确保最新版本
-* remove 	卸载
-* purged（会把软件包和配置文件都删除掉）卸载并删除配置文件
-
-##### installed
-
-pkgs    同时安装多个包
-
-#### file模块
-
-* managed
-
-#### service模块
-
-* running
-
-enable/reload
-
-#### LAMP架构
-
-
-> 一个ID声明下面，一个状态模块不能重复使用
-
-
-建立相关目录
+### LAMP架构
+#### 写sls文件
 
 	cd /srv/salt/
 	mkdir lamp
@@ -110,11 +224,15 @@ enable/reload
 
 	mysql-service:
 	  service.running:
-	    - name: mariadb-server
+	    - name: mariadb
 	    - enable: True
 	    - reload: True
 	EOF
+</pre>
 
+执行
+
+<pre>
 	cd /srv/salt/lamp
 	mkdir files
 	cp /etc/my.cnf .
@@ -122,94 +240,78 @@ enable/reload
 	cp /etc/php.ini .
 	salt 'linux-node2*' test.ping
 	salt 'linux-node2*' state.sls lamp.lamp 
+</pre>
+<pre>salt:// 表示当前环境的根目录，这里的当前环境是指 `base` 或者 `dev` 这样的环境。这些路径可以去 `/etc/salt/master` 文件里面查看</pre>
+> 生产中的配置文件一般都是先安装完软件后再把配置文件复制过来，不可能自己手写。
 
-另外一种写法：
+<pre>排错思路：salt的新版本可能会有缓存的问题，一般看这个的时候可以查看minion的日志，看它是否有输出，如果没有输出就说明是在用cache,如果它确实是在用缓存的话可能通过重启minion来解决。</pre>
 
+#### 按服务分类规划SLS文件
+关于SLS文件的规划其实是有两种类型，或者更多类型，一种是上面这种，把安装、配置、启动分开；另外一种是把服务分开，也就是说每个服务的安装、配置、启动放在一个文件里面，也就是按服务分类；默认推荐第二种方式 。如下：
 <pre>
-lamp-pkg:
+mysql-service:
+  - service.running:
+    - name: mariadb-server
+    - enable: True
+    - reload: True
+
+apache-server:
   pkg.installed:
     - pkgs:
       - httpd
       - php
-      - mariadb
-      - mariadb-server
-      - php-cli
-      - php-mbstring
-</pre>
-
-> sls解析模式是从上往下。最开始的时候salt是乱序，
-
-
-
-#### 状态间的依赖关系
-1. 我依赖谁	require
-2. 我被谁依赖		require_in
-3. 我监控谁		watch
-4. 我被谁监控		watch_in
-5. 我引用谁
-6. 我扩展谁
-
-<pre>
-apache-service:
-  service.running:
-    - name: httpd
-    - enable: True
-    - reload: True
-    - require:
-      - pkg: lamp-pkg
-      - file: apache-config 
-</pre>
-
-<pre>
-mysql-config:
-  file-managed:
-    - name: /etc/my.cnf
-    - source: salt://lamp/files/my.cnf
+  file.managed:
+    - name: /etc/httpd/conf/httpd.conf
+    - source: salt://lamp/files/httpd.conf
     - user: root
     - group: root
     - mode: 644
-    - require_in:
-      - service: mysql-service 
-</pre>
-
-<pre>
-只要状态发生变化就做相应的操作
-apache-service:
   service.running:
     - name: httpd
     - enable: True
     - reload: True
-    - require:
-      - pkg: lamp-pkg
-    - watch:
-      - file: apache-config 
+ 
+mysql-server:
+  pkg.installed:
+    - pkgs:
+      - mariadb-server
+      - mariadb
+  file.managed:
+    - name: /etc/my.cnf
+    - source: satl://lamp/files/my.cnf
+    - user: root
+    - group: root
+      - mode: 644
+  service.running:
+    - name: mariadb-server
+    - enable: True
+    - reload: True
+
+php-config:
+  file.managed:
+    - name: php.ini
+    - source: salt://lamp/files/php.ini
+    - user: root
+    - gorup: root
+    - mode: 644
 </pre>
-> 如果apche-config 这个ID的状态发生变化就reload，如果不加reload=True的话就restart
 
-<pre>
-include:
-  - lamp.pkg
-</pre>
+**注意**
 
-
-####  如何编写SLS技巧
-
-1. 按状态分类，如果单独使用，很清晰
-2. 服务分类，可以被其他的SLS include.例如LNMP include mysql的服务。
-
-
-改一下端口号
-<pre>
-salt 'linux-node2*' state.sls lamp.init
-</pre>
+1. sls解析模式是从上往下。也就是如果有逻辑的话一定要注意，如安装上之后才能启动；最开始的时候salt是乱序，不是严格意义上的从上往下。
+2. 第一条还有一个隐藏的属性就是当上面的执行失败的时候，下面的还是会执行，这在有些时候会出问题，所以就需要延伸到下面的状态间关系了。
 
 ## jinja模板
 
-它是一个python的模板语言，如想要在配置文件里面加一个本地的IP地址，这时候就可以通过这个模板来实现。
+[jinja模板](http://docs.jinkan.org/docs/jinja2)是一个python的模板语言.严格意义上来说，它叫做 `yaml-jinja`,我们也可以用其他模板。模板仅仅是文本文件。它可以生成任何基于文本的格式（HTML、XML、CSV、LaTex 等等）。 它并没有特定的扩展名， .html 或 .xml 都是可以的。
 
-严格意义上来说，它是yaml--jinja
+模板包含 变量 或 表达式 ，这两者在模板求值的时候会被替换为值。模板中 还有标签，控制模板的逻辑。模板语法的大量灵感来自于 Django 和 Python 。
 
-1. 在模板中设置自定义变量：
+这里有两种分隔符: `{% ... %}` 和 `{{ ... }}` 。前者用于执行诸如 for 循环 或赋值的语句，后者把表达式的结果打印到模板上。
+### 功能
+假如想要在配置文件里面加一个本地的IP地址，这时候就可以通过这个模板来替换某一些东西。也就是它可以实现变量的功能。
+
+**在模板中设置自定义变量**
 <pre>
 {% set variable_name = value %}
 </pre>
@@ -217,22 +319,23 @@ salt 'linux-node2*' state.sls lamp.init
 <pre>{% set username = 'Jack' %}</pre>
 
   那么在设置之后就可以使用 `{{ username }}` 得到输出Jack
-### 使用
-
-在SLS文件里面指定端口号，而不是在配置文件里面
+### 简单使用
+在SLS文件里面把端口号指定为一个变量，也就是在SLS文件里面指定端口号，而不是在配置文件里面
 
 使用模板需要三步：
 
-* 告诉file模块，你要使用jinja
-	vim /srv/salt/lamp/config.sls
-	apache-config:
-	  file.managed:
-	    - name: /etc/httpd/conf/httpd.conf
-	    - source: salt://lamp/files/httpd.conf
-	    - user: root
-	    - group: root
-	    - mode: 644
-	    - template: jinjja
+* 告诉 `file` 模块，你要使用 `jinja`
+<pre>
+vim /srv/salt/lamp/config.sls
+apache-config:
+  file.managed:
+    - name: /etc/httpd/conf/httpd.conf
+    - source: salt://lamp/files/httpd.conf
+    - user: root
+    - group: root
+    - mode: 644
+    - template: jinjja
+</pre>
 * 列出参数列表
 
 <pre>
@@ -248,7 +351,7 @@ apache-config:
       PORT: 88
 </pre>
 
-*　模板的引用　
+* 模板的引用　
 
 <pre>
 vim /srv/salt/lamp/files/httpd.conf
@@ -259,41 +362,58 @@ Listen {{ PORT }}
 
 	 salt 'linux-node2*' state.sls lamp.init
 
-> 模板里面支持`salt/grains/pillar`进行赋值
+#### jinja模板支持 `salt/grains/pillar` 进行赋值
 
+##### Grains
 <pre>
 Listen {{ grains['fqdn_ip4'] }}:{{ PORT }}
 Listen {{ grains['ipv4'][1] }}:{{ PORT }}
 Listen {{ grains['ipv4'][1][-1] }}:{{ PORT }}
-
+Listen {{ grains['fqdn_ip4'][0] }}:{{ PORT }}
 </pre>
 
-##### 取IP
-<pre>Listen {{ grains['fqdn_ip4'][0][-1:] }}:{{ PORT }}</pre>
+> grains 默认取到的值是列表的格式，如 `['192.168.1.1']`
+
+###### 取IP(从列表里面取到第一个值)
+
+<pre>Listen {{ grains['fqdn_ip4'][0] }}:{{ PORT }}</pre>
+
 <pre>
-grans.item ipv4
-grants.items fqdn_ip4
+[root@linux-node1 ~]# salt 'linux-node1*' grains.item fqdn_ip4
+linux-node1.oldboyedu.com:
+    ----------
+    fqdn_ip4:
+        - 192.168.56.11 
+它是通过 `/etc/hosts` 文件来解析的
+[root@linux-node1 ~]# salt 'linux-node1*' grains.item ipv4
+linux-node1.oldboyedu.com:
+    ----------
+    ipv4:
+        - 127.0.0.1
+        - 192.168.56.11
+它是通过网卡来获取的
 </pre>
-
-##### 取mac(salt远程执行模块)
+##### Salt
 <pre>{{ salt['netwrok.hw_addr']('eth0') }}
-
 salt '*' network.hw_addr eth0</pre>
-
+> 这里使用的是salt远程执行模块
 ##### pillar
 
 <pre>{{ pillar['apache'] }}</pre>
 
-一般用于配置用户名密码的时候
+这个用途一般用于配置用户名密码的时候
 
+<pre>username: {{ pillar['apache'] }}</pre>
+#### SLS文件里面添加变量
+上面这种方法有一个缺点就是我如果想看我在配置文件里面加了哪些变量的话还需要去配置文件里面一个一个的看，所以还有一种方法就是写在SLS文件里面，这样就可以很明显地看到有哪些东西是改了的。
 
-Grinas：Listen {{ grains['fqdn_ip4'][0] }}:{{ PORT }}
-
-salt远程执行模块：{{ salt['netwrok.hw_addr']('eth0') }}
-
-Pillar   {{ pillar['apache'] }}
-
-> 上面是写在模板文件中，还有另外一种方法，写在SLS文件里面
+<pre>
+SLS文件里面：
+USERNAME: {{ pillar['apache'] }}
+配置文件里面：
+username {{ USERNAME }}
+</pre>
+这样一看就能知道配置文件里面到底配了多少变量
 
 
 # 生产案例
@@ -534,7 +654,7 @@ cd cluster
 
 
 
-
+配置管理跟远程执行比较像，需要学习状态模块，还有就是学习saltstack需要架构能力，把架构写一遍，用自己学习的saltstack技术来学习这个技术。后面的内容还有saltstack双主的架构，salstack ssh的能力，saltstack api的东西 。
 
 
 
