@@ -29,24 +29,31 @@ SLS是 `Salt State` 的缩写，它是一个描述文件，也是状态系统的
 	Installation of packages using OS package managers such as yum or apt-get
 pkg是一个虚拟模块，也就是它会根据不同的操作系统来用不同的包管理器安装相关的包
 
-* installed		
+##### installed		
 
-	安装
+* sources
+<pre>
+yum_repo_release:
+  pkg.installed:
+    - sources:
+      - epel-release: http://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm
+</pre>
+> epel-release将会在下载时显示，代表仓库的名称；在sources下面可以写多个源。
 
-* group_installed
+##### group_installed
 
-	安装组
+安装组
 
-* latest
+##### latest
 
-	确保软件包是最新版本，如果不是就升级
+确保软件包是最新版本，如果不是就升级
 
-* removed 	
+##### removed 	
 
 确保软件包是被卸载的
 
 
-* purged
+##### purged
 
 	除了会把软件包卸载外还会把配置文件都删除掉
 
@@ -64,6 +71,35 @@ Salt States可以积极地操作一个系统上的文件，一般文件可以被
 * group
 * mode
 
+##### append
+
+* text    追加内容
+<pre>
+/etc/profile:
+  file.append:
+    - text:
+      - export HISTTIMEFORMAT="%F %T `whoami`"
+</pre>
+
+##### directory
+
+* user
+* group
+* mode
+* makedirs
+* recurse
+* file_mode
+* dir_mode
+
+> 这个模块是用来管理目录的，它能创建和指定固定权限
+
+##### symlink
+<pre>
+/etc/grub.conf
+  file.symlink:
+    - target: /boot/grub/grub.conf
+</pre>
+
 #### service模块
 
 service状态通过 `minion` 端支持的服务模块来管理服务。另外,salt的执行模块和这个服务状态都是通过系统grains来确实哪个状态模块应该被加载并使用。所以一些特殊的系统可能会不准确。
@@ -79,6 +115,16 @@ service状态通过 `minion` 端支持的服务模块来管理服务。另外,sa
 > watch主要用来当配置文件变化的时候重启该服务
 
 > 一个ID声明下面，一个状态模块不能重复使用,只能用一次
+
+#### sysctl
+##### present
+<pre>
+net.ipv4.ip_local_port_range:
+  sysctl.present:
+    - value: 10000 65000
+</pre>
+
+> 这个模块只有这一个方法，并且这个模块只能用来设置linux内核参数，也就是 `/etc/sysctl.conf` 这个文件。
 
 ### 状态间的依赖关系
 1. 我依赖谁	require
@@ -131,6 +177,7 @@ salt 'linux-node2*' state.sls lamp.init
 1. 如果apche-config 这个ID的状态发生变化就reload
 2. 如果不加reload=True的话就restart
 3. 以前必须学，现在就不那么重要了，因为现在有顺序了。
+4. **watch包括require。**
 #### Include
 
 首先写几个不同功能的SLS文件，如 `pkg.sls`、`config.sls`、`service.sls`。然后写一个总的文件来包含它们
@@ -362,7 +409,7 @@ Listen {{ PORT }}
 
 	 salt 'linux-node2*' state.sls lamp.init
 
-#### jinja模板支持 `salt/grains/pillar` 进行赋值
+#### jinja模板支持 `salt/grains/pillar` 进行引用(赋值)
 
 ##### Grains
 <pre>
@@ -415,31 +462,24 @@ username {{ USERNAME }}
 </pre>
 这样一看就能知道配置文件里面到底配了多少变量
 
+[saltstack文件](https://github.com/saltstack-formulas)
+
+> 不只可以在配置文件里面使用JINJA模板的变量，在SLS文件里面也可以使用(`{% from "php/map.jinja" import php with context %}`)
+
 
 # 生产案例
-
+## 架构
+![](https://github.com/Aresona/edu-docs/blob/master/image/SaltStack/saltstack-arch.png?raw=true)
 ## 规划
 1. 系统初始化
-2. 功能模块：设置单独的目录(haproxy/nginx/php/mysql/memcache),做到尽可能的全、独立
-3. 业务模块：根据业务类型划分，例如web服务，论坛，bbs
+2. 每个服务单独写SLS文件，也就是写功能模块：设置单独的目录(haproxy/nginx/php/mysql/memcache),这里把单独的目录称之为一个模块。
+3. 业务模块：根据业务类型划分，例如对于nginx配置文件来说，要分开web服务，论坛，bbs等不同的业务来管理。
 
-## 执行
+> 在功能模块里面做到全和独立，然后在业务模块里面直接 `include` 就可以了。
+## Actions
 ### salt环境配置
 开发、测试（功能测试环境、性能测试环境）、预生产、生产
-
-
-#### base 基础环境
-
-* init目录
-* 环境初始化
-* DNS配置  
-* history记录时间  
-* 记录命令操作
-* 内核参数优化
-* 安装YUM仓库
-* 安装zabbix-agent
-
-#### 准备
+> 这里可以满足生产中各种环境的分类，每个环境的东西都不一样，所以需要不同的环境，也方便管理，saltstack默认必须有一个base环境，所以这里面我们可以写一些各种环境里面都一样的东西，如系统初始化的一些东西。
 <pre>
 /etc/salt/master
 file_roots:
@@ -460,33 +500,45 @@ mkdir -p /srv/pillar/prod
 systemctl restart salt-master
 </pre>
 
-#### 环境初始化
-##### DNS
+### base 基础环境
+
+#### 规划init目录
+
 <pre>
 cd /srv/salt/base
-mkdir init
+mkdir init/files -p
 cd init
-vim dns.sls 
-/etc/resolv.conf:
-file.managed:
-- source: salt://init/files/resolv.conf
-- user: root
-- gourp: root
-- mode: 644
+</pre>
+#### 系统初始化模块
+* DNS配置  
+* history记录时间  
+* 记录命令操作
+* 内核参数优化
+* 安装YUM仓库
+* 安装zabbix-agent
+##### DNS
+<pre>
+cp /etc/resolv.conf files/
+echo "/etc/resolv.conf:
+  file.managed:
+    - source: salt://init/files/resolv.conf
+    - user: root
+    - gourp: root
+    - mode: 644" > dns1.sls
 </pre>
 ##### History记录时间
 <pre>
-/etc/profile:
+echo '/etc/profile:
   file.append:
     - text:
-      - export HISTTIMEFORMAT="%F %T `whoami`"
+      - export HISTTIMEFORMAT="%F %T `whoami` "' > history.sls
 </pre>
 
 backup: minion
 
 ##### 记录命令操作
 <pre>
-[root@linux-node1 init]# cat audit.sls 
+cat audit.sls 
 /etc/bashrc:
   file.append:
     - text:
@@ -510,13 +562,21 @@ vm.swappiness:
     - value: 0
 </pre>
 
+* 本地可用的端口范围
+作为客户端发起连接(socket)的时候，socket是五元组（源地址、源端口、目的端口、目的地址、协议）
+* 打开文件数限制
+linux下一切皆文件，也就是TCP连接也是一个文件，一个连接也会占用一个文件。
+<pre>cat /proc/sys/fs/file-max</pre>
+* 使用交换分区的权重值
+<pre>cat /proc/sys/vm/swappiness</pre>
+默认centos7是30
 ##### 安装YUM仓库
 <pre>
-[root@linux-node1 init]# cat epel.sls 
-yum_repo_release:
+echo "yum_repo_release:
   pkg.installed:
     - sources:
       - epel-release: http://mirrors.aliyun.com/epel/epel-release-latest-7.noarch.rpm
+      - zabbix-release: http://repo.zabbix.com/zabbix/3.0/rhel/7/x86_64/zabbix-release-3.0-1.el7.noarch.rpm" > epel.sls
 </pre>
 
 ##### 安装zabbix-agent
@@ -550,13 +610,25 @@ zabbix_agentd.conf.d:
       - file: zabbix-agent
 </pre>
 <pre>
-zabbix_agentd.conf
+cp /etc/zabbix/zabbix_agentd.conf files/
+## EDIT zabbix_agentd.conf
 Include=/etc/zabbix/zabbix_agentd.d/
 Server={{ Zabbix_Server }}
 </pre>
+<pre>
+cd /srv/salt/pillar/base
+mkdir zabbix
+cd zabbix
+[root@linux-node1 zabbix]# cat agent.sls 
+Zabbix_Server: 192.168.56.11
+[root@linux-node1 zabbix]# cd ..
+[root@linux-node1 base]# cat top.sls 
+base:
+  '*':
+    - zabbix.agent
+</pre>
 
-
-#### prod 环境
+#### prod 生产环境
 
 <pre>
 cd /srv/
@@ -670,7 +742,8 @@ rsyslog  一个环境里面有一个server端，它跟客户端的配置是不�
 
 所有的minion中除去pillar中item rsyslog的值是server的minion
 
-
+<pre>salt -C '* and not web-dc1-srv' test.ping</pre>
+先通过pillar把服务器端定义出来，然后再通过混合匹配把它摘除掉。
 
 
 
