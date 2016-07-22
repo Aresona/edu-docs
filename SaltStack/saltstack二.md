@@ -116,7 +116,7 @@ service状态通过 `minion` 端支持的服务模块来管理服务。另外,sa
 
 > 一个ID声明下面，一个状态模块不能重复使用,只能用一次
 
-#### sysctl
+#### sysctl模块
 ##### present
 <pre>
 net.ipv4.ip_local_port_range:
@@ -126,12 +126,33 @@ net.ipv4.ip_local_port_range:
 
 > 这个模块只有这一个方法，并且这个模块只能用来设置linux内核参数，也就是 `/etc/sysctl.conf` 这个文件。
 
+#### BACK-UP MODE
+
+`backup mode` 用来备份通过 `file.managed` 和 `file.recurse` 替换过的文件。它可以通过两种方法来实现：
+* 修改 Minion 配置文件
+
+<pre>backup_mode: minion</pre>
+
+* 在 `file.managed` 里面指定
+
+<pre>
+/etc/ssh/sshd_config:
+  file.managed:
+    - source: salt://ssh/sshd_config
+    - backup: minion
+</pre>
+
+* 通过命令来查看之前备份过的文件
+<pre>salt foo.bar.com file.list_backups /tmp/fooltxt</pre>
+> 被备份的文件将会被存在客户端的缓存目录 `/var/cache/salt/minion/file_backup/` 下，并且以时间来命名文件 (zabbix_agentd.conf_Sat_Jul_16_16:29:15_697649_2016)
+
+
 ### 状态间的依赖关系
-1. 我依赖谁	require
-2. 我被谁依赖		require_in
-3. 我监控谁		watch
-4. 我被谁监控		watch_in
-5. 我引用谁		include
+1. 我依赖谁	`require`
+2. 我被谁依赖		`require_in`
+3. 我监控谁		`watch`
+4. 我被谁监控		`watch_in`
+5. 我引用谁		`include`
 6. 我扩展谁
 
 #### Require
@@ -192,6 +213,16 @@ salt 'linux-node2*' state.sls lamp.init
 </pre>
 
 > 这样写有一个好处就是别人也可以依赖，也就是原子化
+#### unless
+
+`unless` 跟 `onlyif` 是反着的
+
+<pre>- unless: test -L /usr/local/haproxy</pre>
+
+如果 `unless` 后面命令返回为 `true` 就不执行
+
+#### onlyif
+
 
 ####  编写SLS技巧
 
@@ -616,7 +647,7 @@ Include=/etc/zabbix/zabbix_agentd.d/
 Server={{ Zabbix_Server }}
 Hostname= {{ Hostname }}
 </pre>
-> 在生产中，不要用*来匹配机器，一般先通过 `test=True` 来检查，如果没事，就给一台机器先部署，如果再没问题才部署所有的机器。
+> 在生产中，不要用*来匹配机器，一般先通过 `test=True` 来检查，如果没事，就给一台机器先部署，如果再没问题才部署所有的机器。建议在所有的文件模块里面加上 `backup: minion`
 ##### Pillar配置
 <pre>
 cd /srv/salt/pillar/base
@@ -631,26 +662,24 @@ base:
     - zabbix.agent
 </pre>
 
-#### prod 生产环境
-
-<pre>
-cd /srv/
-unzip salt.zip
-
-</pre>
-
-本地可用的端口范围：用作客户端发起连接的时候用到的范围，socket是五无组（源地址、源端口、目的地址、目的端口、协议）
-
+### prod 生产环境
+#### 目录规划
 <pre>
 cd /srv/salt/prod
+mkdir modules
+cd modules
 mkdir haproxy
 mkdir keepalived
 mkdir nginx
 mkdir php
 mkdir memcached
 mkdir pkg
+mkdir cluster
 </pre>
-
+> 在规划的时候应该尽可能把配置跟服务分开，因为各个环境、各个业务的配置是不一样的；这里把所有的安装相关的东西都放在了modules目录下面，而所有的配置则放在cluster目录下；这样不同的业务可以引用相同的modules模块；
+#### modules目录
+##### pkg
+这个目录下用来安装一些基础的包，如编译等；
 <pre>
 cd pkg
 vim make.sls
@@ -667,51 +696,151 @@ make-pkg:
       - pcre
       - pcre-devel
 </pre>
+##### haproxy
+###### 本机安装一遍
+如果想用saltstack管理软件的配置文件的时候，最好的办法就是先把软件装一遍，然后再把它的配置文件拷出来进行管理。
 <pre>
-cd haproxy
-mkdir files
-上传包
-cp 
-cd /usr/local/src
+mkdir /srv/salt/prod/proxy/files
+cd /srv/salt/prod/proxy/files
 wget http://www.haproxy.org/download/1.6/src/haproxy-1.6.3.tar.gz
 tar xf haproxy-1.6.3.tar.gz
 cd /usr/local/src/haproxy-1.6.3
 make TARGET=linux2628 PREFIX=/usr/local/haproxy-1.6.3
-make install PREFIX=/usr/local/haproxy
+make install PREFIX=/usr/local/haproxy－1.6.3
 ln -s /usr/local/haproxy-1.6.3/ /usr/local/haproxy
-cp /usr/local/sbin/haproxy /usr/sbin/
-#mkdir -p /etc/haproxy/
-cd /etc/haproxy
+cp /srv/salt/prod/haproxy/files/haproxy-1.6.3/examples/haproxy.init /srv/salt/prod/haproxy/files/
+## EDIT haproxy.init
+BIN=/usr/local/haproxy/sbin/$BASENAME
+## END EDIT
 </pre>
-zip -r a.zip a
+###### 编写salt文件
+<pre>
+cd haproxy
+vim install.sls
+include:
+  - modules.pkg.make
+haproxy-install:
+  file.managed:
+    - name: /usr/local/src/haproxy-1.6.3.tar.gz
+    - source: salt://modules/haproxy/files/haproxy-1.6.3.tar.gz
+    - mode: 644
+    - user: root
+    - group: root
+  cmd.run    # 这个是状态模块下的cmd.run
+    - name: cd /usr/local/src && tar xf haproxy-1.6.3.tar.gz && cd haproxy-1.6.3 && make TARGET=linux2628 PREFIX=/usr/local/haproxy-1.6.3 && make install PREFIX=/usr/local/haproxy-1.6.3 && ln -s /usr/local/haproxy-1.6.3 /usr/local/haproxy
+    - require:
+      - pkg: make-pkg
+      - file: haproxy-install
+haproxy-init
+  file.managed:
+    - name: /etc/init.d/haproxy
+    - source: salt://modules/haproxy/files/haproxy.init
+    - user: root
+    - group: root
+    - mode: 755
+    - require_in:
+      - file: haproxy-install
+    cmd.run:
+    - name: chkconfig --add haproxy
+    - unless: chkconfig|grep haproxy
+net.ipv4.ip_nonlocal_bind:
+  sysctl.present:
+    - value: 1
+/etc/haproxy:
+  file.directory:
+    - user: root
+    - group: root
+    - mode: 755
+</pre>
+* 在 `require` 的时候写SLS文件里面的ID声明，`include` 的时候应该写SLS文件名
 
-默认是base环境
+* 执行salt时默认是base环境，如果想用其它的环境的时候使用下面命令。
 
 <pre>salt '*' state.sls haproxy-install saltenv=prod</pre>
 
-
-#### 业务层面引用
-
+### cluster目录
 <pre>
-cd /srv/salt/prod
-mkdir modules
-mv * modules
-mkdir cluster
 cd cluster
+mkdir files
+cd files
+vim haproxy-outside.cfg
+global
+maxconn 100000
+chroot /usr/local/haproxy
+uid 99  
+gid 99 
+daemon
+nbproc 1 
+pidfile /usr/local/haproxy/logs/haproxy.pid 
+log 127.0.0.1 local3 info
 
+defaults
+option http-keep-alive
+maxconn 100000
+mode http
+timeout connect 5000ms
+timeout client  50000ms
+timeout server 50000ms
+
+listen stats
+mode http
+bind 0.0.0.0:9999
+stats enable
+stats uri     /haproxy-status 
+stats auth    haproxy:saltstack
+
+frontend frontend_www_example_com
+bind 192.168.56.21:80
+mode http
+option httplog
+log global
+    default_backend backend_www_example_com
+
+backend backend_www_example_com
+option forwardfor header X-REAL-IP
+option httpchk HEAD / HTTP/1.0
+balance source
+server web-node1  192.168.56.11:8080 check inter 2000 rise 30 fall 15
+server web-node2  192.168.56.12:8080 check inter 2000 rise 30 fall 15
 </pre>
+<pre>
+vim haproxy-outside.sls
+include:
+  - modules.haproxy.install
+haproxy-service:
+  file.managed.
+    - name: /etc/haproxy/haproxy.cfg
+    - source: salt://cluster/files/haproxy-outside.cfg
+    - user: root
+    - group: root
+    - mode: 644
+  service.running:
+    - name: haproxy
+    - enable: True
+    - reload: True
+    - require:
+      - cmd: haproxy-install
+    - watch:
+      - file: haproxy-service
+</pre>
+<pre>
+cd /srv/salt/base/
+vim top.sls
+base:
+  '*':
+    - init.init 
+prod:
+  'linux-node*':
+    - cluster.haproxy-outside
+</pre>
+<pre>
+salt 'linux-node1*' state.highstate test=True
+</pre>
+**测试访问**
+<pre>192.168.56.11:9999/haproxy-status</pre>
+用户名：haproxy
 
-
-## 继续学习状态间关系
-
-* unless
-
-
-* onlyif
-
-> 它们的区别就是反着的，
-
-
+密码:saltstack
 
 ## salt安装自动化
 
