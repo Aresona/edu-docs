@@ -614,7 +614,10 @@ cp /etc/zabbix/zabbix_agentd.conf files/
 ## EDIT zabbix_agentd.conf
 Include=/etc/zabbix/zabbix_agentd.d/
 Server={{ Zabbix_Server }}
+Hostname= {{ Hostname }}
 </pre>
+> 在生产中，不要用*来匹配机器，一般先通过 `test=True` 来检查，如果没事，就给一台机器先部署，如果再没问题才部署所有的机器。
+##### Pillar配置
 <pre>
 cd /srv/salt/pillar/base
 mkdir zabbix
