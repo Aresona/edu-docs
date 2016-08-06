@@ -78,6 +78,8 @@
 10. 重启（可选）
 11. 测试
 12. 加入集群
+
+![自动化流程](https://github.com/Aresona/edu-docs/blob/master/image/%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B.png)
 ####　写一个shell脚本实现一下
 
 ##### 规划
@@ -95,7 +97,7 @@
 #chown -R www:www /opt/webroot
 #chown -R www:www /webroot
 </pre>
-
+![回滚流程的三种不同级别](https://github.com/Aresona/edu-docs/blob/master/image/%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2/%E5%9B%9E%E6%BB%9A%E6%B5%81%E7%A8%8B%E7%9A%84%E4%B8%89%E7%A7%8D%E7%BA%A7%E5%88%AB.png)
 
 #### 正常回滚
 
