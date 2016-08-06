@@ -83,25 +83,73 @@
 ##### 规划
 1. 用户（所有的WEB服务都应该使用普通用户，所有的WEB服务都不应该监听80端口，除了负载均衡）
 
+<pre>
+#mkdir -p /deploy/code/web-demo -p
+#mkdir -p /deploy/config/web-demo/base
+#mkdir -p /deploy/config/web-demo/other
+#mkdir -p /deploy/tar
+#mkdir -p /deploy/tmp
+#mkdir -p /opt/webroot
+#mkdir /webroot
+#chown -R www:www /deploy
+#chown -R www:www /opt/webroot
+#chown -R www:www /webroot
+</pre>
+
+
+#### 正常回滚
+
+1. 列出回滚版本
+2. 目标服务器移除集群
+3. 执行回滚
+4. 重启和测试 
+5. 加入集群
+
+#### 紧急回滚流程
+1. 列出回滚版本
+2. 执行回滚
+3. 重启和测试
+
+#### 更紧急流程
+1. 直接回滚到上个版本（需要在某个地方记住上一个版本是什么）
+2. 重启和测试
 
 
 
+从上往下，遇到函数先加载不执行
+
+gitlab管理很少，但是要每天备份
 
 
+管理员也是一个用户，真正管理的时候要点管理区域，可以把左侧显示出来，默认是隐藏的，
 
+* 把注册关了，管理员自己创建
 
+这里面有项目和组的概念，要先创建一个组，在组下创建项目，
 
+创建key进行管理
 
+创建一个项目，admin可以创建10个项目
 
+<pre>
+git show |grep commit|cut -d ' ' -f2
+API_VERL=$(git show |grep commit|cut -d ' ' -f2)
+echo ${API_VERL:0:6}
+API_VER=$(echo ${API_VERL:0:6})
+</pre>
 
+改配置文件改变地址
 
+<pre>
+cd /etc/gitlab
+vim gitlab.rb
+external_url 'http://192.168.56.11'
 
+gitlab-ctl reconfigure
 
+</pre>
 
-
-
-
-
+memcache也就讲一讲内在的分配，以前需要讲的东西已经成了运维必会的东西了。
 
 
 
