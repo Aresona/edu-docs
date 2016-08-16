@@ -6,4 +6,18 @@ confer				授予
 In contrast to			与……对比
 functionality			功能
 Scale				规模
+resemble			类似
+populate			填充
+lowercase			小写
+stick				插入；小棒
+alphanumerics			字母数字
+popularity			声望
+reliably			可靠
+confidential			机密
+navigated to			导航到
+sibling				兄弟
+nested				嵌套
+native				本地；土著
+evaluation			评测
+
 </pre>
