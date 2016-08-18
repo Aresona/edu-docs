@@ -19,5 +19,6 @@ sibling				兄弟
 nested				嵌套
 native				本地；土著
 evaluation			评测
-
+provision			规定
+hypervisor			管理程序
 </pre>
