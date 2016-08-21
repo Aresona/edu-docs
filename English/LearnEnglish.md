@@ -21,4 +21,10 @@ native				本地；土著
 evaluation			评测
 provision			规定
 hypervisor			管理程序
+arbitrary			随意
+be concatenated with		被连接在一起
+scrambled			被打扰
 </pre>
+
+
+
