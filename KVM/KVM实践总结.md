@@ -76,7 +76,7 @@ vim /etc/libvirt/qemu/test1.xml
   &lt;source file='/opt/CentOS-moban1.qcow2'/>
 删除      &lt;mac address='52:54:00:da:76:97'/>
 </pre>
-> 主要修改两部分内容，一是修改名字跟镜像文件位置 ，二是修改MAC地址和UUID，UUID改成空，MAC地址行直接删除掉，完成克隆重启后这两个地方会自动补充。
+> 主要修改两部分内容，一是修改名字跟镜像文件位置 ，二是修改MAC地址和UUID，UUID改成空，MAC地址行直接删除掉，完成克隆重启后这两个地方会自动补充。还有一点需要注意的是要想让克隆后的虚拟机启动，第一份虚拟机必须是开启状态（也可能是通过 `dumpxml` 命令导出的配置文件的那台虚拟机，我这里就是前面创建的 `test.xml` 这个文件对应的虚拟机）。
 
 
 **注册并开启新虚拟机**
@@ -393,3 +393,16 @@ grubby --update-kernel=ALL --args="crashkernel=0 at 0 video=1024x768 console=tty
 
 The serial port is called ttyS0 on Linux .
 [虚拟化](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Virtualization_Deployment_and_Administration_Guide/sect-Troubleshooting-Troubleshooting_with_serial_consoles.html)
+
+virsh reboot test 
+
+
+
+查看物理设备上的口
+<pre>setserial -g /dev/ttyS[0123]</pre>
+
+[tty相关文档](http://www.tldp.org/HOWTO/Remote-Serial-Console-HOWTO/configure-kernel.html)
+
+
+
+/home/nexus/sonatype-work/nexus/conf/nexus.xml
