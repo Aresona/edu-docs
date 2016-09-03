@@ -1,4 +1,8 @@
 # KVM实践总结
+## 安装相关包
+<pre>
+yum install qemu-kvm qemu-kvm-tools virt-manager libvirt virt-install -y
+</pre>
 ## 创建虚拟机
 **创建桥接网卡**
 修改两个配置文件如下：
@@ -40,6 +44,7 @@ virt-install --name test --virt-type kvm --ram 1024 --cdrom=/home/CentOS-7-x86_6
 ## 转换镜像文件格式
 **转换镜像格式raw为qcow2**
 <pre>
+yum install libguestfs-tools -y
 virt-sparsify --compress --convert qcow2 /opt/Centos-test.raw /opt/CentOS-moban.qcow2
 </pre>
 
