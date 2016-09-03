@@ -47,6 +47,23 @@ Widely used and broadly supported solution:		广泛应用及支持
 implementations			实现
 Categories			分类
 arbitrary			随意
+diagnostics			诊断
+emulator			模拟器
+featured article			精选文章
+Presentations		演讲
+derivatives 			衍生工具
+conventions			常规，惯例
+typesetting 		排版
+handy tips			方便的技巧 
+provisioning			配置
+outsources			外包
+facilitates			促进，有助于
+functional			实用
+self-service portal 			自助门户服务
+decommissioning 			退役
+authentication			认证
+authorization			授权
+Implement			执行，实行
 
 </pre>
 
