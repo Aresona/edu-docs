@@ -106,9 +106,10 @@ tab net.ifnames=0 biosdevname=0  回车
 去掉UUID ，MAC地址，PEERDNS=no  ipv6去掉   /etc/resolv.conf
 重启网卡   ip addr 
 udev下规则去掉，常用软件装上
+<pre>
 yum install net-tools -y
 yum install vim screen mtr nc nmap tree lrzsz openssl-devel gcc glibc gcc-c++ make zip dos2unix sysstat mysql
-
+</pre>
 装上后它是qemu用户启动的进程，它会再加一些常见的选项，可以使用进程管理工具来管理
 
 # libvirt介绍
@@ -262,3 +263,148 @@ docker pull centos
 docker pull nginx
 
 </pre>
+
+LVM负载均衡
+nginx负载均衡
+haproxy负载均衡
+
+
+自动化扩容－－架构演变－－负载均衡－－数据存储－－缓存（REDIS）－－安全－－MySQL
+
+hadoop组件  kafuka
+
+服务降级－－过载保护－－灰度发布－－
+
+设计一个网站：从0发展到很大
+
+
+# OpenStack之官网
+**[APIs](http://developer.openstack.org/#api)**: An application programming interface (API) lets you access service capabilities through predefined functions.
+
+To learn how to use the APIs, see the OpenStack API Guide and OpenStack API Complete Reference.
+
+一个应用程序编程接口（API），您可以通过预先定义的函数访问服务的能力。
+
+**[CLIs](http://developer.openstack.org/#cli)**: A command-line interface (CLI) is a text-based client that helps you create scripts to interact with OpenStack clouds.
+
+To install the CLIs, see Install the CLIs.
+
+To use the CLIs, see OpenStack command-line clients.
+
+**[SKDs](http://developer.openstack.org/#sdk)**: A software development kit (SDK) contains code, examples, and documentation that you use to create OpenStack cloud applications in the language of your choice.
+
+If one of the following SDKs do not support your language or use case, you can use the APIs or one of the other known SDKs.
+
+**[RESTful](http://docs.openstack.org/liberty/install-guide-rdo/common/glossary.html#term-restful)** : A kind of web service API that uses REST, or Representational State Transfer. REST is the style of architecture for hypermedia systems that is used for the World Wide Web.
+
+REST API 可以让你用任何支持发送 HTTP 请求的设备来与 LeanCloud 进行交互
+
+**最常见的openstack架构**
+
+![](http://docs.openstack.org/admin-guide/_images/openstack-arch-kilo-logical-v1.png)
+
+## OpenStack Image Service
+
+The OpenStack Image service includes the following components:
+
+**glance-api**
+
+Accepts Image API calls for image discovery, retrieval, and storage.
+
+**glance-registry**
+
+Stores, processes, and retrieves metadata about images. Metadata includes items such as size and type.
+
+> The registry is a private internal service meant for use by OpenStack Image service. Do not expose this service to users.
+
+**Database**
+
+Stores image metadata and you can choose your database depending on your preference. Most deployments use MySQL or SQLite.
+
+**Storage repository for image files**
+
+Various repository types are supported including normal file systems, Object Storage, RADOS block devices, HTTP, and Amazon S3. Note that some repositories will only support read-only usage.
+
+### 虚拟机镜像
+
+#### 虚拟机镜像有下面几种格式
+
+**AKI/AMI/ARI**
+
+The AKI/AMI/ARI format was the initial image format supported by Amazon EC2. The image consists of three files:
+
+* AKI (Amazon Kernel Image)
+
+A kernel file that the hypervisor will load initially to boot the image. For a Linux machine, this would be a vmlinuz file.
+
+* AMI (Amazon Machine Image)
+
+This is a virtual machine image **in raw format**, as described above.
+
+* ARI (Amazon Ramdisk Image)
+
+An optional ramdisk file mounted at boot time. For a Linux machine, this would be an initrd file.
+
+**ISO**
+
+The ISO format is a disk image formatted with the read-only ISO 9660 (also known as ECMA-119) filesystem commonly used for CDs and DVDs. While we do not normally think of ISO as a virtual machine image format, since ISOs contain bootable filesystems with an installed operating system, you can treat them the same as you treat other virtual machine image files.
+
+**QCOW2**
+
+The QCOW2 (QEMU copy-on-write version 2) format is commonly used with the KVM hypervisor. It has some additional features over the raw format, such as:
+
+* Using sparse representation, so the image size is smaller.
+* Support for snapshots.
+
+> Because qcow2 is sparse(稀疏), qcow2 images are typically smaller than raw images. Smaller images mean faster uploads, so it is often faster to convert a raw image to qcow2 for uploading instead of uploading the raw file directly.
+
+**Raw**
+
+The `raw` image format is the simplest one, and is natively（本地） supported by both KVM and Xen hypervisors. You can think of a raw image as being the bit-equivalent of a block device file, created as if somebody had copied, say, /dev/sda to a file using the `dd` command.
+
+**UEC tarball**
+
+A UEC (Ubuntu Enterprise Cloud) tarball is a gzipped tarfile that contains an AMI file, AKI file, and ARI file.
+
+**VMDK**
+
+VMware ESXi hypervisor uses the VMDK (Virtual Machine Disk) format for images.
+
+> 一般我们创建openstack用的都是KVM,所以后面的几种格式镜像我们一般都不会用到，或者转换成KVM能使用的镜像。
+
+#### Disk and container formats for images
+
+当上传一个镜像到镜像服务时，可以指定它的硬盘和container格式。
+
+##### Disk formats
+
+虚拟镜像的硬盘格式是底层的硬盘镜像的格式，虚拟应用运营商可以通过不同的形式编排(lay out)信息到虚拟磁盘镜像里面。
+
+##### Container formats
+
+You can set the container format for your image to one of the following values:
+
+**aki**
+
+An Amazon kernel image.
+
+**ami**
+
+An Amazon machine image.
+**ari**
+
+An Amazon ramdisk image.
+
+**bare**
+
+The image does not have a container or metadata envelope.
+
+**docker**
+
+A docker container format.
+
+**ovf**
+
+The OVF container format.
+
+> 镜像服务和其他OpenStack项目当前不支持container format,所以一般不确定的时候直接指定 `bare` 

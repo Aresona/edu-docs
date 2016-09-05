@@ -64,6 +64,21 @@ decommissioning 			退役
 authentication			认证
 authorization			授权
 Implement			执行，实行
+validating			验证、证实
+senarios			场景
+guidelines			方针
+Ultimately			最终
+issue			发布
+ironic			具有讽刺意味,滑稽的，挖苦的
+periodic			定期
+meant for 			意味着
+preference			偏爱，优先权
+entity				实体
+ snippets 			片段
+pertain				属于
+natively			本地
+tarball				压缩包
+laying out			铺设，编排
 
 </pre>
 
