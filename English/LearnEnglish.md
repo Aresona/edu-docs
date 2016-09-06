@@ -79,7 +79,10 @@ pertain				属于
 natively			本地
 tarball				压缩包
 laying out			铺设，编排
-
+amend			修改
+primitive constraints			原始的限制
+Paravirtualized			准虚拟化
+encompass			环绕，拥有
 </pre>
 
 
