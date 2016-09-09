@@ -408,3 +408,16 @@ A docker container format.
 The OVF container format.
 
 > 镜像服务和其他OpenStack项目当前不支持container format,所以一般不确定的时候直接指定 `bare` 
+
+# 自定义OpenStack镜像
+## 必要条件
+* Disk partitions and resize（调整） root partition on boot（启动） (`cloud-init`)
+* No hard-coded MAC address information
+* SSH server running
+* Disable firewall
+* Access instance using ssh public key (`cloud-init`)
+* Process user data and other metadata (`cloud-init`)
+* Paravirtualized(准虚拟化) Xen support in Linux kernel (Xen hypervisor only with Linux kernel version < 3.0)
+
+> When the disk for an instance is resized up, zeros are just added to the end.
+

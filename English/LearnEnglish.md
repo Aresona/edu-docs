@@ -83,6 +83,14 @@ amend			修改
 primitive constraints			原始的限制
 Paravirtualized			准虚拟化
 encompass			环绕，拥有
+are eager to			渴望
+appendix			附录
+relevant			相应
+portability				可移值性
+Federation			联邦
+corruption			腐败
+intentional			故意的
+hibernation			蛰伏
 </pre>
 
 
