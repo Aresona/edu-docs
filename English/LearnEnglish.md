@@ -91,6 +91,19 @@ Federation			联邦
 corruption			腐败
 intentional			故意的
 hibernation			蛰伏
+extremely			非常
+majority			多数，大部分
+interrelated		相关
+automate			自动化
+referred to			简称
+ephemeral			短暂的
+preserve			保留
+shelve			搁置
+unshelve			取消搁置
+batch-retrieves			批量检索
+hierarchy			层级树
+union mount			联合挂载
+
 </pre>
 
 
