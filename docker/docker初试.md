@@ -1,8 +1,3 @@
----
-title: docker初试
-date: 2016-09-11 11:21:30
-tags: docker
----
 # Docker简介
 
 Docker是Docker.lnc公司开源的一个基于LXC(linux container)技术之上构建的Container容器引擎，源代码托管在Github上，基于Go语言并遵从Apache2.0协议开源。
@@ -303,6 +298,8 @@ root        11  0.0  0.0  17492  1160 ?        R+   06:49   0:00 ps aux
 
 </pre>
 > 可以看到它是通过iptables来实现的。容器里面的IP地址要经过NAT之后才能访问到容器
+
+
 <pre>
 [root@localhost ~]# docker logs b018127b5712
 192.168.56.1 - - [10/Sep/2016:06:52:25 +0000] "GET / HTTP/1.1" 200 612 "-" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36" "-"
@@ -310,6 +307,8 @@ root        11  0.0  0.0  17492  1160 ?        R+   06:49   0:00 ps aux
 192.168.56.1 - - [10/Sep/2016:06:52:25 +0000] "GET /favicon.ico HTTP/1.1" 404 571 "http://192.168.56.11:10001/" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36" "-"
 </pre>
 > 随机映射的好处就是端口不会冲突
+
+
 #### 指定映射
 <pre>
 -p hostPort:containerPort
@@ -417,7 +416,9 @@ docker.io/nginx     latest              4efb2fcdb1ab        2 weeks ago         
 docker run --name mynginxv1 -d -p 81:80 example/mynginx:v1 nginx
 docker logs mynginxv1
 </pre>
+
 > 这样做的话就回到了自动化以前，所以就引出了下面的dockerfile来快速构建docker的镜像
+
 ### Dockerfile
 它的格式就是文本格式，这个文件格式里面有一些关键字，现在用dockerfile写一遍刚才做的镜像
 <pre>
@@ -441,8 +442,8 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 ADD index.html /usr/share/nginx/html/index.html
 EXPOSE 80
 CMD ["nginx"]
-[root@localhost nginx]# docker build -t mynginx:v2 .
 </pre>
+[root@localhost nginx]# docker build -t mynginx:v2 .
 除了注释的第一行必须是FROM
 [root@localhost nginx]# docker run --rm --name mynginxv2 -p 82:80 mynginx:v2
 </pre>
@@ -641,7 +642,6 @@ flask</pre>
 * 编写Dockerfile文件
 <pre>
 [root@localhost test-api]# cat Dockerfile 
-<pre>
 # Docker for test-app
 
 # Base image
@@ -666,14 +666,16 @@ EXPOSE 22 5000
 # CMD
 CMD ["/usr/bin/supervisord","-c","/etc/supervisord.conf"]
 </pre>
-</pre>
+
 * 创建镜像并启动镜像
+
 <pre>
 docker build -t example/test-api .
 docker run --name shop-api -d -p 88:5000 -p 8022:22 example/test-api
 这时就可以通过访问 `http://192.168.56.11:88` 来测试是否成功;另外也可以通过 `root:example` 来进入容器中。
 supervisord -c /etc/supervisord.conf
 </pre>
+
 > 做镜像时可以把变动很少程序的放在最上面，因为只要前面改了后面就会重要构建一遍。
 另外生产最佳实践是都使用supervisord来启动多个进程的，
 
@@ -707,7 +709,10 @@ vmware不仅仅有harbor,还有vic，它由三个项目组成，这三个项目�
 * 进程间通信隔离
 * 用户权限的隔离
 * PID隔离
+
+
 ## 命名空间
+
 [命名空间](http://dockone.io/article/76)是一个加强版的 `chroot` ，chroot是将应用隔离到一个虚拟的私有root下，LXC内部依赖linux内核的三种隔离机制(isolation infrastructure):
 
 1. Chroot
