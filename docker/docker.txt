@@ -1,0 +1,56 @@
+[root@linux-node1 docker]# tree
+.
+├── app
+│?? ├── xxx-admin
+│?? └── xxx-api
+├── runtime
+│?? ├── java
+│?? ├── php
+│?? └── python
+└── system
+    ├── centos
+    ├── centos-ssh
+    └── ubuntu
+
+	
+	1.  ssh
+	
+	2.  python
+	
+	centos-ssh
+	
+	app
+
+
+requirements.txt
+
+xxx-admin
+
+pip install -r requirements.txt
+
+python-demo.ini
+
+			==============================Docker Registry私有仓库 Nginx+认证的方式：===============================
+
+			1.申请免费的ssl证书  https://buy.wosign.com/free/
+
+			2.http://www.wosign.com/Docdownload/Nginx%20SSL%E8%AF%81%E4%B9%A6%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97.pdf
+
+			3. 设置验证
+
+			4.proxy_pass 5000
+
+			5.docker run -d -p 5000:5000 --name registry registry:2
+
+			====================harbor======================
+
+
+			http://vmware.github.io/harbor/index_cn.html
+
+			https://github.com/vmware/harbor
+
+
+
+
+	
+	
