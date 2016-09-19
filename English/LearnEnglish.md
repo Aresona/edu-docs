@@ -103,6 +103,12 @@ unshelve			取消搁置
 batch-retrieves			批量检索
 hierarchy			层级树
 union mount			联合挂载
+reap			收割
+architect			design and make.
+facilitated			便利(
+precede			优于
+substitution			替换
+capable			有能力
 
 </pre>
 

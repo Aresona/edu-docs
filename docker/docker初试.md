@@ -632,9 +632,14 @@ supervisorctl restart sshd
 然后提交到git上
 ### 开始编写Dockerfile
 * 编写python依赖文件
+
+
 <pre>[root@localhost test-api]# vim requirements.txt
 flask</pre>
+
 * 准备supervisord的配置
+
+
 <pre>
 [root@localhost test-api]# cp /etc/supervisord.conf .
 [root@localhost test-api]# cp /etc/supervisord.d/app-supervisor.ini .
