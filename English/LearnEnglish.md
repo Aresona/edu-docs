@@ -109,7 +109,28 @@ facilitated			便利(
 precede			优于
 substitution			替换
 capable			有能力
+context			背景
+dispatch		调度
+criteria			标准
+migrated		迁移
+evacuating		疏散
+eligible		合格
+candidate		候选人
+Affinity		亲和
+AntiAffinity		反亲和
+ephemeral 		短暂的
+virtually 		实质上
+consumes		消耗
+subsequent		随后
+normalized		归
+evenly			平等的
+negative 		负
+metrics			指标
+mute			静音
+Utilization aware scheduling		利用感知调度
+partitioning		分区，划分
 
+	
 </pre>
 
 
