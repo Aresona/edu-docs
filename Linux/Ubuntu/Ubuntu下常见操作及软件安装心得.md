@@ -41,12 +41,15 @@ dpkg -i wine-qqintl_0.1.3-2_i386.deb
 <pre>
 
 ### 安装 `Chrome`
+
 <pre>
 sudo dpkg -i google-chrome-stable_current_amd64.deb 
 </pre>
 
 ### 配置静态IP
+
 `/etc/network/interfaces`
+
 <pre>
 # interfaces(5) file used by ifup(8) and ifdown(8)
 auto lo
