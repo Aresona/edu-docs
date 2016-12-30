@@ -129,9 +129,43 @@ metrics			指标
 mute			静音
 Utilization aware scheduling		利用感知调度
 partitioning		分区，划分
-
-	
+toggle                  切换
+comprehensive                   全面
+modern                  现代
+norms                   规范
+diversity                       多样性
+roadmap                 路线图
+negotiate                       谈判
+hurdle                  栏
+governance                      治理
+summit                  峰会
+propose                 提出
+Project-Specific                        具体项目
+conversion                      转换
+precipitated            沉淀
+Glossary                        词汇表
+referred to             被称作
+Conceptually                    概念上
+convince                        说服
+reaction                        反应
+terminology                     术语
+nutshell                        简而言之
+acquaint                        认识
+relevant                        相应
+composite                       综合
+integrity                       诚信
+context                         上下文
+content                         内容
+terminology                     术语
+As well                         同样
+acquaint                        熟悉
+relevant                        相关
+hangups                         挂断
+certain                         某些
+primer                          引物
+collisions                      碰撞
 </pre>
+
 
 
 
