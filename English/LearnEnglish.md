@@ -164,6 +164,7 @@ hangups                         挂断
 certain                         某些
 primer                          引物
 collisions                      碰撞
+bonus		资金、红利
 </pre>
 
 

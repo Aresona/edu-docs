@@ -65,3 +65,4 @@ broadcast 192.168.33.255
 dns-nameservers 223.5.5.5 223.6.6.6
 </pre>
 
+![QQ and wechat](http://askubuntu.com/questions/788017/how-to-use-qq-and-wechat-on-ubuntu-16-04-lts)
