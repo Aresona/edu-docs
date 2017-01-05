@@ -165,6 +165,10 @@ certain                         某些
 primer                          引物
 collisions                      碰撞
 bonus		资金、红利
+intended		意图
+pending			待定
+numerical			数字的
+
 </pre>
 
 
