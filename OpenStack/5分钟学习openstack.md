@@ -31,7 +31,9 @@ egrep -o '(vmx|svm)' /proc/cpuinfo
 
 ### 不同的Storage Pool
 KVM还支持iSCSI,Ceph等多种类型的Storage Pool，但最常用的就是目录类型。
+
 #### 文件目录
+
 1. 文件目录是最常用的Storage Pool类型,这种情况下Volume就是这个目录下的文件，一个文件就是一个volume
 2. 默认在`/etc/libvirt/storage`目录下有不同的xml文件，每个xml文件就代表一个pool,而default.xml定义了默认的pool
 3. 使用文件做volume有很多优点：存储方便、移值性好、可复制、可远程访问；远程访问的意思是镜像文件不一定放置在宿主机本地文件系统中，也可以存储在通过网络连接的远程文件系统，如NFS、GlusterFS等
@@ -42,7 +44,7 @@ KVM还支持iSCSI,Ceph等多种类型的Storage Pool，但最常用的就是目�
 
 #### LVM
 
-不仅一个文件可以分配给客户机作为虚拟磁盘，宿主机上VG中的LV也可以作为虚拟磁盘分配给虚拟机使用。不过LV由于没有磁盘MBR引导记录，不能作为虚拟机的启动盘，只能作为数据盘使用
+不仅一个文件可以分配给客户机作为虚拟磁盘，宿主机上VG中的LV也可以作为虚拟磁盘分配给虚拟机使用。**不过LV由于没有磁盘MBR引导记录，不能作为虚拟机的启动盘，只能作为数据盘使用**
 
 1. VG就是一个Storage Pool,VG中的LV就是Volume
 2. 可以通过virsh命令定义一个存储池，如下

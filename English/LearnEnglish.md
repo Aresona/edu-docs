@@ -168,6 +168,10 @@ bonus		资金、红利
 intended		意图
 pending			待定
 numerical			数字的
+boilerplate		样板
+preface			前言
+collaborate 		合作
+seamlessly			无缝
 
 </pre>
 
