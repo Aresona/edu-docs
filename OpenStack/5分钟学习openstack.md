@@ -33,12 +33,13 @@ egrep -o '(vmx|svm)' /proc/cpuinfo
 KVM还支持iSCSI,Ceph等多种类型的Storage Pool，但最常用的就是目录类型。
 #### 文件目录
 1. 文件目录是最常用的Storage Pool类型,这种情况下Volume就是这个目录下的文件，一个文件就是一个volume
-2. 默认在`/etc/libvirtd/storage`目录下有不同的xml文件，每个xml文件就代表一个pool,而default.xml定义了默认的pool
+2. 默认在`/etc/libvirt/storage`目录下有不同的xml文件，每个xml文件就代表一个pool,而default.xml定义了默认的pool
 3. 使用文件做volume有很多优点：存储方便、移值性好、可复制、可远程访问；远程访问的意思是镜像文件不一定放置在宿主机本地文件系统中，也可以存储在通过网络连接的远程文件系统，如NFS、GlusterFS等
 4. 镜像文件的共享可以方便虚机在不同宿主机之间做live Migration。
 5. raw是默认磁盘格式，即原始磁盘镜像格式，移植性好，性能好，但是大小固定，不能节省磁盘空间
 6. qcow2是推荐使用的格式，cow表示copy on write,能够节省磁盘空间，支持AES加密，支持zlib压缩，支持多快照，功能很多。
 7. vmdk是VMware的虚拟磁盘格式，也就是说VMware虚机可以直接在KVM上运行。
+
 #### LVM
 
 不仅一个文件可以分配给客户机作为虚拟磁盘，宿主机上VG中的LV也可以作为虚拟磁盘分配给虚拟机使用。不过LV由于没有磁盘MBR引导记录，不能作为虚拟机的启动盘，只能作为数据盘使用
