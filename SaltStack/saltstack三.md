@@ -332,7 +332,7 @@ slat-run jobs.lookup_jid jid
 使用salt-call命令
 
 ### 配置
-<pre
+<pre>
 /etc/salt/minion
 file_client: local
 file_roots:
@@ -378,9 +378,9 @@ master:
 ### 实践
 
 在linux-node2上装一个salt-master
-
+<pre>
 yum install salt-syndic
-
+</pre>
 
 <pre>
 Resolving Dependencies
@@ -524,7 +524,7 @@ curl -k https://192.168.56.11:8000/ \
 ### 写好的API
 [小的oms平台](https://github.com/binbin91/oms)
 
-[dashboard](https://github.com/yueyongyue/saltshaker)
+[saltstack-dashboard](https://github.com/yueyongyue/saltshaker)
 <pre>
 git clone https://github.com/binbin91/oms
 
