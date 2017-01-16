@@ -101,4 +101,35 @@ apt-get install xinit gdm kubuntu-desktop -y
 </pre>
 
 
+## 云计算基本概念
+
+计算（CPU/内存）、存储和网络是 IT 系统的三类资源。通过云计算平台，这三类资源变成了三个池子。
+
+当需要虚机的时候，只需要向平台提供虚机的规格。平台会快速从三个资源池分配相应的资源，部署出这样一个满足规格的虚机。
+
+云平台是一个面向服务的架构，按照提供服务的不同分为IaaS、PaaS和SaaS。
+
+![](http://img.blog.csdn.net/20160329205344575)
+
+**IaaS**（Infrastructure as a Service）提供的服务是虚拟机。
+IaaS 负责管理虚机的生命周期，包括创建、修改、备份、启停、销毁等。
+使用者从云平台得到的是一个已经安装好镜像（操作系统+其他预装软件）的虚拟机。
+使用者需要关心虚机的类型（OS）和配置（CPU、内存、磁盘），并且自己负责部署上层的中间件和应用。
+IaaS 的使用者通常是数据中心的系统管理员。
+典型的 IaaS 例子有 AWS、Rackspace、阿里云等
+
+**PaaS**（Platform as a Service）提供的服务是应用的运行环境和一系列中间件服务（比如数据库、消息队列等）。
+使用者只需专注应用的开发，并将自己的应用和数据部署到PaaS环境中。
+PaaS负责保证这些服务的可用性和性能。
+PaaS的使用者通常是应用的开发人员。
+典型的 PaaS 有 Google App Engine、IBM BlueMix 等
+
+**SaaS**（Software as a Service）提供的是应用服务。
+使用者只需要登录并使用应用，无需关心应用使用什么技术实现，也不需要关系应用部署在哪里。
+SaaS的使用者通常是应用的最终用户。
+典型的 SaaS 有 Google Gmail、Salesforce 等
+
+> OpenStack is a cloud operating system that controls large pools of compute, storage, and networking resources throughout a datacenter, all managed through a dashboard that gives administrators control while empowering their users to provision resources through a web interface.
+
+由此可见，OpenStack 针对的是 IT 基础设施，是 IaaS 这个层次的云操作系统。
 
