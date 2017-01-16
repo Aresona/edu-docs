@@ -133,3 +133,58 @@ SaaS的使用者通常是应用的最终用户。
 
 由此可见，OpenStack 针对的是 IT 基础设施，是 IaaS 这个层次的云操作系统。
 
+# 部署
+
+部署其实非常灵活，但学习时我们可以按各种分类来分析哪些服务应该装在哪些地方，如下：
+
+OpenStack 是一个分布式系统，由若干不同功能的节点（Node）组成：
+
+* 控制节点（Controller Node）
+
+管理 OpenStack，其上运行的服务有 Keystone、Glance、Horizon 以及 Nova 和 Neutron 中管理相关的组件。
+控制节点也运行支持 OpenStack 的服务，例如 SQL 数据库（通常是 MySQL）、消息队列（通常是 RabbitMQ）和网络时间服务 NTP。        
+
+* 网络节点（Network Node）
+
+其上运行的服务为 Neutron。
+为 OpenStack 提供 L2 和 L3 网络。
+包括虚拟机网络、DHCP、路由、NAT 等。        
+
+* 存储节点（Storage Node）
+
+提供块存储（Cinder）或对象存储（Swift）服务。        
+
+* 计算节点（Compute Node）
+
+其上运行 Hypervisor（默认使用 KVM）。
+同时运行 Neutron 服务的 agent，为虚拟机提供网络支持。        
+
+这几类节点是从功能上进行的逻辑划分，在实际部署时可以根据需求灵活配置，比如：
+
+在大规模OpenStack生产环境中，每类节点都分别部署在若干台物理服务器上，各司其职并互相协作。 
+这样的环境具备很好的性能、伸缩性和高可用性。
+
+在最小的实验环境中，可以将 4 类节点部署到一个物理的甚至是虚拟服务器上。 
+麻雀虽小五脏俱全，通常也称为 All-in-One 部署。
+
+在我们的实验环境中，为了使得拓扑简洁同时功能完备，我们用两个虚拟机：
+
+devstack-controller：控制节点 + 网络节点 + 块存储节点 + 计算节点
+
+devstack-compute：计算节点
+
+
+
+# 常用服务架构
+
+整体架构之 `Conceptual Architecture`
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396288164018195.jpg?_=5340622)
+
+整体架构之 `logical Architecture`
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396289980075632.jpg?_=5340622)
+
+## Neutron
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396290319030381.jpg?_=5340622)

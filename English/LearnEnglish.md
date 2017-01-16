@@ -184,6 +184,10 @@ suffice			足够
 vandalism			故意破坏
 prolong			延长
 Phishing		网络钓鱼
+empowering			赋权
+precedure			程序
+Conceptual			概念
+
 </pre>
 
 
