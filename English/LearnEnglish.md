@@ -172,6 +172,21 @@ boilerplate		样板
 preface			前言
 collaborate 		合作
 seamlessly			无缝
+malicious		坏蛋
+legitimate		合法的
+assess			评估
+malware			恶意软件
+spam			垃圾邮件
+proactive			主动的
+suspicious			可疑
+reconsideration			重新考虑
+suffice			足够
+vandalism			故意破坏
+prolong			延长
+Phishing		网络钓鱼
+empowering			赋权
+precedure			程序
+Conceptual			概念
 
 </pre>
 

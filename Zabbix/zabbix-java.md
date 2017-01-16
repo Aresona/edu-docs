@@ -774,3 +774,25 @@ www.zabbix.com/documentation.php
 [马亮](http://www.52devops.com/chuck/630.html)
 [谢迪](http://www.jixuege.com)
 [良辰](http://bjstack.combjstack.com)
+
+
+
+
+
+### 监控SNMP设备
+<pre>
+yum install net-snmp-utils -y
+</pre>
+<pre>
+[root@zabbix-server yum.repos.d]# snmpwalk -v 2c -c public 192.168.10.1 1.3.6.1.4.1.25506.2.6.1.1.1.1.12.220
+SNMPv2-SMI::enterprises.25506.2.6.1.1.1.1.12.220 = INTEGER: 65535
+</pre>
+具体的交换机的OID可能需要给厂家打电话去确认，因为一般不会在官网上显示。
+
+<pre>
+snmpwalk -v 2c -c public 192.168.31.251
+snmpget -v 2c -c public -On 192.168.10.11 ifPhysAddress
+</pre>
+<pre>
+javaws viewer.jnpj
+</pre>

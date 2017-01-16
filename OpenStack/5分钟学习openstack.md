@@ -101,4 +101,90 @@ apt-get install xinit gdm kubuntu-desktop -y
 </pre>
 
 
+## 云计算基本概念
 
+计算（CPU/内存）、存储和网络是 IT 系统的三类资源。通过云计算平台，这三类资源变成了三个池子。
+
+当需要虚机的时候，只需要向平台提供虚机的规格。平台会快速从三个资源池分配相应的资源，部署出这样一个满足规格的虚机。
+
+云平台是一个面向服务的架构，按照提供服务的不同分为IaaS、PaaS和SaaS。
+
+![](http://img.blog.csdn.net/20160329205344575)
+
+**IaaS**（Infrastructure as a Service）提供的服务是虚拟机。
+IaaS 负责管理虚机的生命周期，包括创建、修改、备份、启停、销毁等。
+使用者从云平台得到的是一个已经安装好镜像（操作系统+其他预装软件）的虚拟机。
+使用者需要关心虚机的类型（OS）和配置（CPU、内存、磁盘），并且自己负责部署上层的中间件和应用。
+IaaS 的使用者通常是数据中心的系统管理员。
+典型的 IaaS 例子有 AWS、Rackspace、阿里云等
+
+**PaaS**（Platform as a Service）提供的服务是应用的运行环境和一系列中间件服务（比如数据库、消息队列等）。
+使用者只需专注应用的开发，并将自己的应用和数据部署到PaaS环境中。
+PaaS负责保证这些服务的可用性和性能。
+PaaS的使用者通常是应用的开发人员。
+典型的 PaaS 有 Google App Engine、IBM BlueMix 等
+
+**SaaS**（Software as a Service）提供的是应用服务。
+使用者只需要登录并使用应用，无需关心应用使用什么技术实现，也不需要关系应用部署在哪里。
+SaaS的使用者通常是应用的最终用户。
+典型的 SaaS 有 Google Gmail、Salesforce 等
+
+> OpenStack is a cloud operating system that controls large pools of compute, storage, and networking resources throughout a datacenter, all managed through a dashboard that gives administrators control while empowering their users to provision resources through a web interface.
+
+由此可见，OpenStack 针对的是 IT 基础设施，是 IaaS 这个层次的云操作系统。
+
+# 部署
+
+部署其实非常灵活，但学习时我们可以按各种分类来分析哪些服务应该装在哪些地方，如下：
+
+OpenStack 是一个分布式系统，由若干不同功能的节点（Node）组成：
+
+* 控制节点（Controller Node）
+
+管理 OpenStack，其上运行的服务有 Keystone、Glance、Horizon 以及 Nova 和 Neutron 中管理相关的组件。
+控制节点也运行支持 OpenStack 的服务，例如 SQL 数据库（通常是 MySQL）、消息队列（通常是 RabbitMQ）和网络时间服务 NTP。        
+
+* 网络节点（Network Node）
+
+其上运行的服务为 Neutron。
+为 OpenStack 提供 L2 和 L3 网络。
+包括虚拟机网络、DHCP、路由、NAT 等。        
+
+* 存储节点（Storage Node）
+
+提供块存储（Cinder）或对象存储（Swift）服务。        
+
+* 计算节点（Compute Node）
+
+其上运行 Hypervisor（默认使用 KVM）。
+同时运行 Neutron 服务的 agent，为虚拟机提供网络支持。        
+
+这几类节点是从功能上进行的逻辑划分，在实际部署时可以根据需求灵活配置，比如：
+
+在大规模OpenStack生产环境中，每类节点都分别部署在若干台物理服务器上，各司其职并互相协作。 
+这样的环境具备很好的性能、伸缩性和高可用性。
+
+在最小的实验环境中，可以将 4 类节点部署到一个物理的甚至是虚拟服务器上。 
+麻雀虽小五脏俱全，通常也称为 All-in-One 部署。
+
+在我们的实验环境中，为了使得拓扑简洁同时功能完备，我们用两个虚拟机：
+
+devstack-controller：控制节点 + 网络节点 + 块存储节点 + 计算节点
+
+devstack-compute：计算节点
+
+
+
+# 常用服务架构
+
+整体架构之 `Conceptual Architecture`
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396288164018195.jpg?_=5340622)
+
+整体架构之 `logical Architecture`
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396289980075632.jpg?_=5340622)
+
+## Neutron
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396290319030381.jpg?_=5340622)
