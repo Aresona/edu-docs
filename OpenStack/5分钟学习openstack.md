@@ -173,6 +173,18 @@ devstack-controller：控制节点 + 网络节点 + 块存储节点 + 计算节�
 
 devstack-compute：计算节点
 
+## 常见服务类型
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160404-1459724662268078986.png?_=5350536)
+
+* Management Network: 用于OpenStack内部管理用，比如各服务之间通信。这里使用eth0
+* VM（Tenant）Network：OpenStack 部署的虚拟机所使用的网络。OpenStack 支持多租户（Tenant），虚机是放在 Tenant 下的，所以叫 Tenant Network。这里使用 eth1 
+* External Network：一般来说，Tenant Network 是内部私有网络，只用于 VM 之间通信，与其他非 VM 网络是隔离的。这里我们规划了一个外部网络（External Network），通过 devstak-controller 的 eth2 连接。
+
+
+Neutron 通过 L3 服务让 VM 能够访问到 External Network。
+对于公有云，External Network 一般指的是 Internet。
+对于企业私有云，External Network 则可以是 Intranet 中的某个网络。  
 
 
 # 常用服务架构
@@ -188,3 +200,313 @@ devstack-compute：计算节点
 ## Neutron
 
 ![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160331-1459396290319030381.jpg?_=5340622)
+
+
+## [Keystone](http://www.cnblogs.com/CloudMan6/p/5365474.html)
+
+主要功能：
+
+1. 管理用户及权限
+2. 维护 `OpenStack Services` 的 `Endpoint`
+3. `Authentication` (认证)和 `Authorization` (鉴权)
+
+相关概念
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160407-1460033914633035973.jpg?_=5365474)
+
+**User**
+
+1. User 指代任何使用 OpenStack 的实体，可以是真正的用户，其他系统或者服务。
+2. 除了 admin 和 demo，OpenStack 也为 nova、cinder、glance、neutron 服务创建了相应的 User。 admin 也可以管理这些 User。
+
+**Credentials(资格)**
+
+Credentials 是 User 用来证明自己身份的信息，可以是： 
+
+1. 用户名/密码
+2. Token 
+3. API Key
+4. 其他高级方式
+
+**Authentication(身份认证)**
+
+Authentication 是 Keystone 验证 User 身份的过程。
+
+User 访问 OpenStack 时向 Keystone 提交用户名和密码形式的 Credentials，Keystone 验证通过后会给 User 签发一个 Token 作为后续访问的 Credential。
+
+**Token**
+
+`Token` 是由数字和字母组成的字符串，`User` 成功 `Authentication` 后由 `Keystone` 分配给 `User`。
+
+1. Token 用做访问 Service 的 Credential
+2. Service 会通过 Keystone 验证 Token 的有效性
+3. Token 的有效期默认是 24 小时
+
+**Project**
+
+Project 用于将 OpenStack 的资源（计算、存储和网络）进行分组和隔离。 根据 OpenStack 服务的对象不同，Project 可以是一个客户（公有云，也叫租户）、部门或者项目组（私有云）。
+
+这里请注意：
+
+1. 资源的所有权是属于 Project 的，而不是 User。
+2. 在 OpenStack 的界面和文档中，Tenant / Project / Account 这几个术语是通用的，但长期看会倾向使用 Project
+3. 每个 User（包括 admin）必须挂在 Project 里才能访问该 Project 的资源。 一个User可以属于多个 Project。
+4. admin 相当于 root 用户，具有最高权限
+
+
+**Service**
+
+OpenStack 的 Service 包括 Compute (Nova)、Block Storage (Cinder)、Object Storage (Swift)、Image Service (Glance) 、Networking Service (Neutron) 等。
+
+每个 Service 都会提供若干个 Endpoint，User 通过 Endpoint 访问资源和执行操作。
+
+**Endpoint**
+
+Endpoint 是一个网络上可访问的地址，通常是一个 URL。 Service 通过 Endpoint 暴露自己的 API。 Keystone 负责管理和维护每个 Service 的 Endpoint。
+
+<pre>
+openstack catalog list
+</pre>
+
+
+**Role**
+
+安全包含两部分：Authentication（认证）和 Authorization（鉴权） Authentication 解决的是“你是谁？”的问题 Authorization 解决的是“你能干什么？”的问题
+
+Keystone 是借助 Role 来实现 Authorization 的：
+
+1. Keystone 定义Role
+2. 可以为 User 分配一个或多个 Role. Horizon 的菜单为 Identity->Project->Manage Members
+3. Service 决定每个 Role 能做什么事情 Service 通过各自的 policy.json 文件对 Role 进行访问控制。
+4. OpenStack 默认配置只区分 admin 和非 admin Role。 如果需要对特定的 Role 进行授权，可以修改 policy.json。
+
+
+## [Glance](http://www.cnblogs.com/CloudMan6/p/5384923.html)
+
+### 架构
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160412-1460472066871043421.jpg?_=5384923)
+
+### Glance-api
+
+glance-api 是系统后台运行的服务进程。对外提供 REST API，响应 image 查询、获取和存储的调用。
+
+glance-api 不会真正处理请求。如果是与 image metadata（元数据）相关的操作，glance-api 会把请求转发给 glance-registry；
+
+如果是与 image 自身存取相关的操作，glance-api 会把请求转发给该 image 的 store backend。
+
+### Glance-registry
+
+glance-registry 是系统后台运行的服务进程。
+负责处理和存取 image 的 metadata，例如 image 的大小和类型。
+
+### Store backend
+
+Glance 自己并不存储 image。真正的 image 是存放在 backend 中的。Glance 支持多种 backend，包括:
+
+* A directory on a local file system（这是默认配置）
+* GridFS
+* Ceph RBD
+* Amazon S3
+* Sheepdog
+* OpenStack Block Storage (Cinder)
+* OpenStack Object Storage (Swift)
+* VMware ESX
+
+具体使用哪种 backend，是在 `/etc/glance/glance-api.conf` 中配置的
+
+## Nova
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160419-1461074078681029733.png?_=5410447)
+
+Nova 的架构比较复杂，包含很多组件。 
+这些组件以子服务（后台 deamon 进程）的形式运行，可以分为以下几类：
+
+### API
+
+**nova-api**
+
+接收和响应客户的API调用
+
+Nova-api 对接收到的 HTTP API 请求会做如下处理：
+
+1.	检查客户端传人的参数是否合法有效
+2.	调用 Nova 其他子服务的处理客户端 HTTP 请求
+3.	格式化 Nova 其他子服务返回的结果并返回给客户端
+
+### Compte Core
+
+[**nova-scheduler**](http://www.cnblogs.com/CloudMan6/p/5441782.html)
+
+虚机调度服务，负责决定在哪个计算节点上运行虚机
+
+<pre>scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler
+scheduler_available_filters = nova.scheduler.filters.all_filters
+scheduler_default_filters = RetryFilter, AvailabilityZoneFilter, RamFilter, DiskFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
+</pre>
+
+1. Nova 允许使用第三方 scheduler，配置 scheduler_driver 即可
+2. Nova.conf 中的 scheduler_available_filters 选项用于配置 scheduler 可用的 filter，默认是所有 nova 自带的 filter 都可以用于滤操作
+3. 另外还有一个选项 scheduler_default_filters，用于指定 scheduler 真正使用的 filter.Filter scheduler 将按照列表中的顺序依次过滤。
+
+> ServerGroupAntiAffinityFilter和ServerGroupAffinityFilter的使用原理是先创建指定类型的组，在创建虚拟机的时候选定相应的组，那么这个组里面的虚机就会都集中一台计算节点上或者
+
+<pre>
+ram_allocation_ratio = 1.5
+disk_allocation_ratio = 1.0
+cpu_allocation_ratio = 16.0
+</pre>
+
+前面都是**FILET**的内容，而对于**Weight**来说，目前默认的计算得分方法是根据计算节点空闲的内在量计算值。
+
+
+**Metadata**
+
+Metadata在ImagePropertiesFilter和ComputeCapabilitiesFilter过滤的时候都会用到，它们的属性分别在flavor和image里面设置。
+
+**nova-compute**
+
+管理虚机的核心服务，通过调用 Hypervisor API 实现虚机生命周期管理
+
+**Hypervisor**
+
+计算节点上跑的虚拟化管理程序，虚机管理最底层的程序。
+不同虚拟化技术提供自己的 Hypervisor。
+常用的 Hypervisor 有 KVM，Xen， VMWare 等
+
+**nova-conductor**
+
+nova-compute 经常需要更新数据库，比如更新虚机的状态。
+出于安全性和伸缩性的考虑，nova-compute 并不会直接访问数据库，而是将这个任务委托给 nova-conductor，这个我们在后面会详细讨论。
+
+这样做有两个显著好处：
+
+1. 更高的系统安全性
+2. 更好的系统伸缩性
+
+nova-conductor 将 nova-compute 与数据库解耦之后还带来另一个好处：提高了 nova 的伸缩性。
+
+nova-compute 与 conductor 是通过消息中间件交互的。
+这种松散的架构允许配置多个 nova-conductor 实例。
+在一个大规模的 OpenStack 部署环境里，管理员可以通过增加 nova-conductor 的数量来应对日益增长的计算节点对数据库的访问。
+
+### Console Interface
+
+**nova-console**
+
+用户可以通过多种方式访问虚机的控制台：
+
+* nova-novncproxy，基于 Web 浏览器的 VNC 访问
+* nova-spicehtml5proxy，基于 HTML5 浏览器的 SPICE 访问
+* nova-xvpnvncproxy，基于 Java 客户端的 VNC 访问
+
+**nova-consoleauth**
+
+负责对访问虚机控制台请求提供 Token 认证
+
+**nova-cert**
+
+提供x509证书支持
+
+### Message Queue
+
+Nova包含众多的子服务，这些子服务之间需要相互协调和通信。为解耦各个子服务，Nova通过Message Queue作为子服务的信息中转站。
+
+高级消息队列协议（AMQP1），它是一种协议，而rabbitmq是AMQP服务器
+
+### 从虚机创建流程看nova-*子服务如何协同工作
+
+![](http://www.cnblogs.com/CloudMan6/p/5415836.html)
+
+1. 客户（可以是 OpenStack 最终用户，也可以是其他程序）向 API（nova-api）发送请求：“帮我创建一个虚机”
+2. API 对请求做一些必要处理后，向 Messaging（RabbitMQ）发送了一条消息：“让 Scheduler 创建一个虚机”
+3. Scheduler（nova-scheduler）从 Messaging 获取到 API 发给它的消息，然后执行调度算法，从若干计算节点中选出节点 A
+4. Scheduler 向 Messaging 发送了一条消息：“在计算节点 A 上创建这个虚机”
+5. 计算节点 A 的 Compute（nova-compute）从 Messaging 中获取到 Scheduler 发给它的消息，然后在本节点的 Hypervisor 上启动虚机。
+6. 在虚机创建的过程中，Compute 如果需要查询或更新数据库信息，会通过 Messaging 向 Conductor（nova-conductor）发送消息，Conductor 负责数据库访问。
+
+# Tips
+
+## OpenStack命令命名
+
+OpenStack 服务都有自己的 CLI。
+命令很好记，就是服务的名字，比如 Glance 就是 glance，Nova 就是 nova。
+
+但 Keystone 比较特殊，现在是用 openstack 来代替老版的 keystone 命令。
+比如查询用户列表，如果用 keystone user-list
+
+不同服务用的命令虽然不同，但这些命令使用方式却非常类似，可以举一反三。
+
+1. 执行命令前，需要设置环境变量 
+2. 各个服务的命令都有增、删、改、查的操作
+3. 每个对象都有ID
+4. 可用help查看命令的用法(glance help、glance help image-update)
+
+## [OpenStack 组件的通用设计思路](http://www.cnblogs.com/CloudMan6/p/5427981.html)
+
+### API前端服务
+
+每个 OpenStack 组件可能包含若干子服务，其中必定有一个 API 服务负责接收客户请求。 
+
+以 Nova 为例，nova-api 作为 Nova 组件对外的唯一窗口，向客户暴露 Nova 能够提供的功能。 当客户需要执行虚机相关的操作，能且只能向 nova-api 发送 REST 请求。 这里的客户包括终端用户、命令行和 OpenStack 其他组件。 
+
+设计 API 前端服务的好处在于： 
+
+1. 对外提供统一接口，隐藏实现细节 
+2. API 提供 REST 标准调用服务，便于与第三方系统集成 
+3. 可以通过运行多个 API 服务实例轻松实现 API 的高可用，比如运行多个 nova-api 进程 
+
+### Scheduler 调度服务
+
+对于某项操作，如果有多个实体都能够完成任务，那么通常会有一个 scheduler 负责从这些实体中挑选出一个最合适的来执行操作。 
+
+在前面的例子中，Nova 有多个计算节点。 当需要创建虚机时，nova-scheduler 会根据计算节点当时的资源使用情况选择一个最合适的计算节点来运行虚机。 
+
+调度服务就好比是一个开发团队中的项目经理，当接到新的开发任务时，项目经理会评估任务的难度，考察团队成员目前的工作负荷和技能水平，然后将任务分配给最合适的开发人员。 
+
+除了 Nova，块服务组件 Cinder 也有 scheduler 子服务，后面我们会详细讨论。 
+
+### Worker 工作服务
+
+调度服务只管分配任务，真正执行任务的是 Worker 工作服务。 
+
+在 Nova 中，这个 Worker 就是 nova-compute 了。 将 Scheduler 和 Worker 从职能上进行划分使得 OpenStack 非常容易扩展： 
+
+1. 当计算资源不够了无法创建虚机时，可以增加计算节点（增加 Worker）
+2. 当客户的请求量太大调度不过来时，可以增加 Scheduler
+
+### Driver 框架
+
+OpenStack 作为开放的 Infrastracture as a Service 云操作系统，支持业界各种优秀的技术。 这些技术可能是开源免费的，也可能是商业收费的。 这种开放的架构使得 OpenStack 能够在技术上保持先进性，具有很强的竞争力，同时又不会造成厂商锁定（Lock-in）。 
+
+那 OpenStack 的这种开放性体现在哪里呢？ 一个重要的方面就是采用基于 Driver 的框架。 
+
+以 Nova 为例，OpenStack 的计算节点支持多种 Hypervisor。 包括 KVM, Hyper-V, VMWare, Xen, Docker, LXC 等。 
+
+Nova-compute 为这些 Hypervisor 定义了统一的接口，hypervisor 只需要实现这些接口，就可以 driver 的形式即插即用到 OpenStack 中。 下面是 nova driver 的架构示意图 
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160424-1461498587439070722.jpg?_=5427981)
+
+### Messaging 服务
+
+程序之间的调用通常分两种：同步调用和异步调用。
+
+**同步调用**
+
+API 直接调用 Scheduler 的接口就是同步调用。其特点是 API 发出请求后需要一直等待，直到 Scheduler 完成对 Compute 的调度，将结果返回给 API 后 API 才能够继续做后面的工作。
+
+**异步调用**
+
+API 通过 Messaging 间接调用 Scheduler 就是异步调用。
+其特点是 API 发出请求后不需要等待，直接返回，继续做后面的工作。
+
+Scheduler 从 Messaging 接收到请求后执行调度操作，完成后将结果也通过 Messaging 发送给 API。
+
+在 OpenStack 这类分布式系统中，通常采用异步调用的方式，其好处是：
+
+1. **解耦各子服务**  子服务不需要知道其他服务在哪里运行，只需要发送消息给 Messaging 就能完成调用。
+2. **提高性能**
+异步调用使得调用者无需等待结果返回。这样可以继续执行更多的工作，提高系统总的吞吐量。
+3. **提高伸缩性**
+子服务可以根据需要进行扩展，启动更多的实例处理更多的请求，在提高可用性的同时也提高了整个系统的伸缩性。而且这种变化不会影响到其他子服务，也就是说变化对别人是透明的。
+
