@@ -328,11 +328,41 @@ Nova 的架构比较复杂，包含很多组件。
 
 接收和响应客户的API调用
 
+Nova-api 对接收到的 HTTP API 请求会做如下处理：
+
+1.	检查客户端传人的参数是否合法有效
+2.	调用 Nova 其他子服务的处理客户端 HTTP 请求
+3.	格式化 Nova 其他子服务返回的结果并返回给客户端
+
 ### Compte Core
 
-**nova-scheduler**
+[**nova-scheduler**](http://www.cnblogs.com/CloudMan6/p/5441782.html)
 
 虚机调度服务，负责决定在哪个计算节点上运行虚机
+
+<pre>scheduler_driver=nova.scheduler.filter_scheduler.FilterScheduler
+scheduler_available_filters = nova.scheduler.filters.all_filters
+scheduler_default_filters = RetryFilter, AvailabilityZoneFilter, RamFilter, DiskFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
+</pre>
+
+1. Nova 允许使用第三方 scheduler，配置 scheduler_driver 即可
+2. Nova.conf 中的 scheduler_available_filters 选项用于配置 scheduler 可用的 filter，默认是所有 nova 自带的 filter 都可以用于滤操作
+3. 另外还有一个选项 scheduler_default_filters，用于指定 scheduler 真正使用的 filter.Filter scheduler 将按照列表中的顺序依次过滤。
+
+> ServerGroupAntiAffinityFilter和ServerGroupAffinityFilter的使用原理是先创建指定类型的组，在创建虚拟机的时候选定相应的组，那么这个组里面的虚机就会都集中一台计算节点上或者
+
+<pre>
+ram_allocation_ratio = 1.5
+disk_allocation_ratio = 1.0
+cpu_allocation_ratio = 16.0
+</pre>
+
+前面都是**FILET**的内容，而对于**Weight**来说，目前默认的计算得分方法是根据计算节点空闲的内在量计算值。
+
+
+**Metadata**
+
+Metadata在ImagePropertiesFilter和ComputeCapabilitiesFilter过滤的时候都会用到，它们的属性分别在flavor和image里面设置。
 
 **nova-compute**
 
@@ -348,6 +378,17 @@ Nova 的架构比较复杂，包含很多组件。
 
 nova-compute 经常需要更新数据库，比如更新虚机的状态。
 出于安全性和伸缩性的考虑，nova-compute 并不会直接访问数据库，而是将这个任务委托给 nova-conductor，这个我们在后面会详细讨论。
+
+这样做有两个显著好处：
+
+1. 更高的系统安全性
+2. 更好的系统伸缩性
+
+nova-conductor 将 nova-compute 与数据库解耦之后还带来另一个好处：提高了 nova 的伸缩性。
+
+nova-compute 与 conductor 是通过消息中间件交互的。
+这种松散的架构允许配置多个 nova-conductor 实例。
+在一个大规模的 OpenStack 部署环境里，管理员可以通过增加 nova-conductor 的数量来应对日益增长的计算节点对数据库的访问。
 
 ### Console Interface
 
