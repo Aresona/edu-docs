@@ -324,7 +324,7 @@ Nova 的架构比较复杂，包含很多组件。
 
 ### API
 
-**nova-api**
+#### nova-api
 
 接收和响应客户的API调用
 
@@ -336,7 +336,7 @@ Nova-api 对接收到的 HTTP API 请求会做如下处理：
 
 ### Compte Core
 
-[**nova-scheduler**](http://www.cnblogs.com/CloudMan6/p/5441782.html)
+[#### nova-scheduler](http://www.cnblogs.com/CloudMan6/p/5441782.html)
 
 虚机调度服务，负责决定在哪个计算节点上运行虚机
 
@@ -357,24 +357,48 @@ disk_allocation_ratio = 1.0
 cpu_allocation_ratio = 16.0
 </pre>
 
-前面都是**FILET**的内容，而对于**Weight**来说，目前默认的计算得分方法是根据计算节点空闲的内在量计算值。
+前面都是**FILTER**的内容，而对于**Weight**来说，目前默认的计算得分方法是根据计算节点空闲的内在量计算值。
 
 
 **Metadata**
 
 Metadata在ImagePropertiesFilter和ComputeCapabilitiesFilter过滤的时候都会用到，它们的属性分别在flavor和image里面设置。
 
-**nova-compute**
+#### nova-compute
 
-管理虚机的核心服务，通过调用 Hypervisor API 实现虚机生命周期管理
+管理虚机的核心服务，通过调用 Hypervisor API 实现虚机生命周期管理；某个特定的计算节点上只会运行一种Hypervisor,只需在该节点nova-compute配置文件中配置对应的compute_driver就可以了 **`compute_driver`**
 
-**Hypervisor**
+功能分为两类：
+
+1. 定时向OpenStack报告计算节点的状态
+2. 实现instance生命周期的管理
+
+nova-compute创建instance的过程可以分为4步：
+
+1. 为instance准备资源(claim)
+2. 创建instance的镜像文件
+3. 创建instance的XML定义文件
+4. 创建虚拟网络并启动虚拟机
+
+镜像文件会经过一个转换：　Image(qcow2) --> backing file(raw) --> instance image(qcow2);这里对两个镜像文件进行区别：第一个image不会变，而第二个image在安装新软件后会发生变化。
+
+
+
+
+<pre>
+instances_path=/opt/stack/data/nova/instances
+base_dir_name=_base
+</pre>
+
+
+
+#### Hypervisor
 
 计算节点上跑的虚拟化管理程序，虚机管理最底层的程序。
 不同虚拟化技术提供自己的 Hypervisor。
 常用的 Hypervisor 有 KVM，Xen， VMWare 等
 
-**nova-conductor**
+#### nova-conductor
 
 nova-compute 经常需要更新数据库，比如更新虚机的状态。
 出于安全性和伸缩性的考虑，nova-compute 并不会直接访问数据库，而是将这个任务委托给 nova-conductor，这个我们在后面会详细讨论。
@@ -390,9 +414,14 @@ nova-compute 与 conductor 是通过消息中间件交互的。
 这种松散的架构允许配置多个 nova-conductor 实例。
 在一个大规模的 OpenStack 部署环境里，管理员可以通过增加 nova-conductor 的数量来应对日益增长的计算节点对数据库的访问。
 
+<pre>
+[database]
+connection = mysql+pymysql://root:secret@controller/nova?charset=utf8
+</pre>
+
 ### Console Interface
 
-**nova-console**
+#### nova-console
 
 用户可以通过多种方式访问虚机的控制台：
 
@@ -400,11 +429,11 @@ nova-compute 与 conductor 是通过消息中间件交互的。
 * nova-spicehtml5proxy，基于 HTML5 浏览器的 SPICE 访问
 * nova-xvpnvncproxy，基于 Java 客户端的 VNC 访问
 
-**nova-consoleauth**
+#### nova-consoleauth
 
 负责对访问虚机控制台请求提供 Token 认证
 
-**nova-cert**
+#### nova-cert
 
 提供x509证书支持
 
@@ -510,3 +539,25 @@ Scheduler 从 Messaging 接收到请求后执行调度操作，完成后将结�
 3. **提高伸缩性**
 子服务可以根据需要进行扩展，启动更多的实例处理更多的请求，在提高可用性的同时也提高了整个系统的伸缩性。而且这种变化不会影响到其他子服务，也就是说变化对别人是透明的。
 
+## [OpenStack日志](http://www.cnblogs.com/CloudMan6/p/5456484.html)
+
+### OpenStack日志格式
+
+OpenStack的日志格式都是统一的，如下：
+
+<pre>
+时间戳		日志记录的时间，包括 年 月 日 时 分 秒 毫秒
+日志等级		有INFO WARNING ERROR DEBUG等
+代码模块		当前运行的模块Request ID	日志会记录连续不同的操作，为了便于区分和增加可读性，每个操作都被分配唯一的Request ID,便于查找
+日志内容		这是日志的主体，记录当前正在执行的操作和结果等重要信息
+源代码位置	日志代码的位置，包括方法名称，源代码文件的目录位置和行号。这一项不是所有日志都有
+</pre>
+
+
+分析某个操作时，我们首先要理清该操作的内部流程，然后再到相应的节点上去查看日志。 例如shut off 的流程为： 
+
+1. 向 nova-api 发送请求
+2. nova-api 发送消息
+3. nova-compute 执行操作
+
+1，2 两个步骤是在控制节点上执行的，查看 nova-api 的日志。 第 3 步是在计算节点上执行的，查看 nova-compute 的日志。 
