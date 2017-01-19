@@ -143,7 +143,108 @@ nova-compute 执行 unshelve 的过程与 launch instance 非常类似。
 3.	创建 instance 的 XML 定义文件
 4.	创建虚拟网络并启动 instance
 
-日志记录在 /opt/stack/logs/n-cpu.log，分析留给大家练习。
+## Migrate
+
+Migrate操作的作用是将instance从当前的计算节点迁移到其他节点上。
+
+Migrate不要求源和目标节点必须共享存储，当然共享存储也是可以的。Migrate前必须满足一个条件：计算节点间需要配置nova用户无密码访问
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160528-1464447095630076998.jpg?_=5538599)
+
+### 如果源节点和目标节点是同一个，Migrate操作会怎样进行呢？
+
+实验得知，nova-compute在做migrate的时候会检查目标节点，如果发现目标节点与源节点相同，会抛出UnableToMigrateToSelf异常。nova-compute失败之后，scheduler会重新调度，由于有RetryFilter，会将之前选择的源节点过滤掉，这样就能选到不同的计算节点了。
+
+### nova-compute详细操作
+
+1. 开始Migrate(Starting migrate disk and power off migrate_disk_and_power_off)
+2. 在目标节点instance目录里面创建(nova用户)临时文件，如果touch不了，说明不是共享存储，这时就先创建目录，再创建文件
+3. 关闭instance
+4. 重命名磁盘文件父目录，然后scp到目标节点相应目录
+5. 在目标节点上启动instance
+6. 当启动后在dashboard上的状态会显示 `comfirm Resize/Migrate`，其实是给了用户一个反悔的机会，如果确定后就会在源节点删除磁盘文件并删除虚拟机，目标节点不需要做任何事。
+7. 而当执行 `revert Resize/Migrate`的时候会在目标节点上关闭instance,删除instance目录，并在hypervisor上删除instance.然后在源节点上重新启动。
+
+## Resize
+
+Resize的作用是调整instance的vCPU、内存和磁盘资源，Resize操作是通过为instance选择新的flavor来调整资源的分配。另外，因为需要分配的资源发生了变化，在resize之前需要借助nova-scheduler重新为instance选择一个合适的计算节点，如果选择的节点与当前节点不是同一个，那么就需要做Migrate.
+
+所以本质上讲：Resize是在Migrate的同时应用新的flavor,Migrate可以看做是resize的一个特例：flavor没发生变化的resize,这也是为什么在日志中看到migrate实际上是在执行resize操作。
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160601-1464731997551085708.jpg?_=5548294)
+
+1. 向nova-api发送请求
+2. nova-api发送信息
+3. nova-scheduler执行调度
+4. nova-scheduler发送消息
+5. nova-compute 执行操作
+
+Resize分两种情况：
+
+1. nova-scheduler选择的目标节点与源节点是不同节点。这时跟Migrate是一样的，只是在目标节点启动instance的时候按新的flavor分配资源。
+2. 目标节点与源节点是同一节点，则不需要Migrate,
+
+### 实际日志显示
+
+1. 执行新实例flavor
+2. nova-scheduler执行调度
+3. nova-scheduler发送消息
+4. nova-compute执行操作(为新instance准备资源/关闭instance/准备镜像文件(备份并复制回来一份)/创建instance的XML文件/准备虚拟网络/启动instance)
+
+### comfirm
+
+执行confirm后删除备份目录instance_id_resize；而如果执行revert后，会在目标节点上先删除instance,并在源节点上恢复节点启动。
+
+## Live Migrate
+
+Migrate操作会先将instance停掉，也就是所谓的“冷迁移”。而Live Migrate是在线迁移，instance不会停机
+
+Live Migrate分两种：
+
+1. 源和目标节点没有共享存储，instance在迁移的时候需要将其镜像文件从源节点传到目标节点，这叫做Block Migration(块迁移)
+2. 源和目标节点共享存储，instance的镜像文件不需要迁移，只需要将instance的状态迁移到目标节点
+
+
+源和目标节点需要满足一些条件才能支持Live Migration:
+
+1. 源和目标节点的CPU类型一致
+2. 源和目标节点的Libvirt版本要一致
+3. 源和目标节点能相互识别对方的主机名称，比如可以在 `/etc/hosts`　中加入对方的条目。
+4. 源和目标节点的 `/etc/nova/nova.conf`　中指明在线迁移时使用TCP协议
+5. instance使用config driver保存其metadata.在Block Migration过程中，该config driver也需要迁移到目标节点，由于目前libvirtd只支持迁移vfat类型的config driver，所以必须在 `/etc/nova/nova.conf`　中明确指明launch instance时创建vfat类型的config driver
+6. 源和目标节点的Libvirt TCP远程监听服务得打开，需要在下面两个配置文件中做一点配置
+
+<pre>
+[libvirt]
+live_migration_uri = qemu+TCP://stack@%s/system
+[DEFAULT]
+config_drive_format = vfat
+</pre>
+`/etc/libvirt/libvirtd.conf`
+<pre>
+listen_tls = 1
+listen_tcp = 1
+listen_addr = "0.0.0.0"
+unix_sock_group = "libvirtd"
+unix_sock_ro_perms = "0777"
+unix_sock_rw_perms = "0770"
+auth_unix_ro = "none"
+auth_unix_rw = "none"
+auth_tcp = "none"
+</pre>
+`/etc/sysconfig/libvirtd`
+<pre>
+LIBVIRTD_ARGS="--listen"
+</pre>
+
+### 非共享存储Block Migration
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160602-1464875387118021710.jpg?_=5554549)
+
+1. 向nova-api发送消息（指定目标节点），因为是非共享存储，所以要勾上 `Block Migration`；另外还有一个`Disk Over Commit`如果勾上的话表示在检查目标节点磁盘的时候是以XML文件里面最大磁盘容量来判断，如果不勾的话就是以实际大小来判断。
+2. 将instance的数据（镜像文件、虚拟网络资源）等迁移到目标节点
+3. 
+
 
 
 需要练习的日志：
