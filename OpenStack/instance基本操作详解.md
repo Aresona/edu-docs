@@ -105,6 +105,46 @@ Nova的备份操作叫snapshot,其工作原理是对instance的镜像文件（�
 4. instance spawned
 
 
+## Shelve
+
+instance被suspend后虽然处于shutdown状态，但Hypervisor依然在宿主机上为其预留了资源，以便在以后能够成功Resume.如果想释放这些预留资源，可以使用shelve操作。Shelve会将instance作为image保存到glance中，然后在宿主机上删除该instance.
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160524-1464048229786035236.jpg?_=5524751)
+
+1. 向nova-api发送请求
+2. nova-api发送消息
+3. nova-compute执行操作
+
+nova-compute详细操作如下 ：
+
+1. 关闭instance(shutdown instance)
+2. 对instance执行snapshot操作(begining cold snapshot process)
+3. convert -f qcow2 -O qcow2
+4. snapshot extracted
+5. 生成image,并上传到glance(snapshot image upload)
+6. 删除instance在宿主机上的资源
+
+## Unshelve
+
+因为 Glance 中保存了 instance 的 image，unshelve 的过程其实就是通过该 image launch 一个新的 instance，nova-scheduler 也会调度合适的计算节点来创建该 instance。 instance unshelve 后可能运行在与 shelve 之前不同的计算节点上，但 instance 的其他属性（比如 flavor，IP 等）不会改变。
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160526-1464217272156085924.png?_=5529915)
+
+1. 向 nova-api 发送请求
+2. nova-api 发送消息
+3. nova-scheduler 执行调度
+4. nova-scheduler 发送消息
+5. nova-compute 执行操作
+
+nova-compute 执行 unshelve 的过程与 launch instance 非常类似。
+一样会经过如下几个步骤：
+1.	为 instance 准备 CPU、内存和磁盘资源
+2.	创建 instance 镜像文件
+3.	创建 instance 的 XML 定义文件
+4.	创建虚拟网络并启动 instance
+
+日志记录在 /opt/stack/logs/n-cpu.log，分析留给大家练习。
+
 
 需要练习的日志：
 

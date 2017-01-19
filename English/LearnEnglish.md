@@ -187,6 +187,7 @@ Phishing		网络钓鱼
 empowering			赋权
 precedure			程序
 Conceptual			概念
+extracted			提取
 
 </pre>
 
