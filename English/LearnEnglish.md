@@ -188,6 +188,11 @@ empowering			赋权
 precedure			程序
 Conceptual			概念
 extracted			提取
+fraction			分数
+assert			断言，宣布，声明
+tuple			元组
+discard			丢弃
+intersection			路口
 
 </pre>
 
