@@ -243,9 +243,50 @@ LIBVIRTD_ARGS="--listen"
 
 1. 向nova-api发送消息（指定目标节点），因为是非共享存储，所以要勾上 `Block Migration`；另外还有一个`Disk Over Commit`如果勾上的话表示在检查目标节点磁盘的时候是以XML文件里面最大磁盘容量来判断，如果不勾的话就是以实际大小来判断。
 2. 将instance的数据（镜像文件、虚拟网络资源）等迁移到目标节点
-3. 
+3. 源节点启动迁移动作，暂停instance(paused)
+4. 目标节点上`Resumed`
+5. 在源节点上执行迁移的后处理工作，删除instance
+6. 在目标节点上执行迁移的后处理工作，创建XML,在Hypervisor中定义instance,使之能够正常启动
 
+> Instance在 `live Migration` 的整个过程中不会停机，可以通过ping来看到
 
+###　共享存储 `Live Migration`
+
+共享存储与非共享存储的区别在于：
+
+1. 向 `nova-api`　提交请求的时候，不能勾选　"Block Migrate"
+2. 因为源和目标节点都能直接访问 `instance`　的镜像，所以目标节点在准备阶段不需要传输镜像文件，源节点在迁移后处理阶段也无需删除instance的目录。
+3. 只有instance的状态需要从源节点传输到的目标节点，整个迁移速度比 `Block Migration` 快很多。
+
+## Evacuate
+
+Rebuild 可以恢复损坏的 instance。那如果是宿主机坏了怎么办呢？ 比如硬件故障或者断电造成整台计算节点无法工作，该节点上运行的 instance 如何恢复呢？ 用 Shelve 或者 Migrate 可不可以？ 很不幸，这两个操作都要求 instance 所在计算节点的 nova-compute 服务正常运行。 幸运的是，还有 Evacuate 操作。 Evacuate 可在 nova-compute 无法工作的情况下将节点上的 instance 迁移到其他计算节点上。但有个前提： Instance 的镜像文件必须放在共享存储上。 
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160605-1465136783745042709.jpg?_=5562131)
+
+1. 向nova-api发送请求
+2. nova-api发送消息
+3. nova-scheduler执行调度
+4. nova-scheduler发送消息
+5. nova-compute执行操作
+
+<pre>
+nova evcuate c2 --n-shared-storage
+</pre>
+
+### 计算节点具体操作
+
+evacuate实际上是通过 `rebuild` 操作实现的，因为evacuate是用共享存储上的instance的镜像文件重新创建虚机
+
+计算节点上的工作是用共享存储上的镜像文件重建instance.
+
+1. 为instance分配资源
+2. 查看并确保共享存储上的instance file可访问
+3. 启动instance
+
+> 以上就是nova的所有操作，下面是一张图用来总结这些操作的用途和使用场景。
+
+![](http://7xo6kd.com1.z0.glb.clouddn.com/upload-ueditor-image-20160607-1465256704490062241.png?_=5565757)
 
 需要练习的日志：
 
@@ -254,7 +295,7 @@ LIBVIRTD_ARGS="--listen"
 3. Shutoff
 4. Suspend/Resume
 5. Unrescue
-6. 
+6. Live Migration(共享存储)
 
 
 
