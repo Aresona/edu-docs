@@ -52,4 +52,4 @@ cinder service-list
 
 `volume provider`放在哪里？
 
-一般来讲，`voume provider`是独立的。`cinder-volume` 使用 `driver`与`volume provider`通信并协调工作。所以只需要将 `driver` 与 `cinder-volume`放在一起就可以了。在`cinder-volume`的源代码目录下有很多 `driver`,支持不同的`volume provider`。另外，｀NFS｀和｀LVM｀都属于 `volume provider`。
+一般来讲，`voume provider`是独立的。`cinder-volume` 使用 `driver`与`volume provider`通信并协调工作。所以只需要将 `driver` 与 `cinder-volume`放在一起就可以了。在`cinder-volume`的源代码目录下有很多 `driver`,支持不同的`volume provider`。另外，`NFS`和`LVM`都属于 `volume provider`。
