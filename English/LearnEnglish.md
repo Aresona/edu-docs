@@ -180,8 +180,6 @@ spam			垃圾邮件
 proactive			主动的
 suspicious			可疑
 reconsideration			重新考虑
-suffice			足够
-vandalism			故意破坏
 prolong			延长
 Phishing		网络钓鱼
 empowering			赋权
@@ -193,6 +191,16 @@ assert			断言，宣布，声明
 tuple			元组
 discard			丢弃
 intersection			路口
+Retrieve			检索
+Subscribe		订阅
+laid out		布局
+innate			先天
+property		属性
+fundamental 		基本
+match against			匹配
+recurse			递归
+refs			参考
+Tracking		跟踪
 
 </pre>
 
