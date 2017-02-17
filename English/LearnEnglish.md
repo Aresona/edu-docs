@@ -180,6 +180,8 @@ spam			垃圾邮件
 proactive			主动的
 suspicious			可疑
 reconsideration			重新考虑
+suffice			足够
+vandalism			故意破坏
 prolong			延长
 Phishing		网络钓鱼
 empowering			赋权
