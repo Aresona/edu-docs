@@ -1,0 +1,11 @@
+include:
+  - openstack-controller.pkg.lock
+  - openstack-controller.pkg.mariadb
+  - openstack-controller.pkg.rabbitmq
+  - openstack-controller.pkg.memcached
+  - openstack-controller.pkg.keystone
+  - openstack-controller.pkg.httpd
+  - openstack-controller.pkg.source_file
+  - openstack-controller.pkg.glance
+  - openstack-controller.pkg.nova
+  - openstack-controller.pkg.neutron
