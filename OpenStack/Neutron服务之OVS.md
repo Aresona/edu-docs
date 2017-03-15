@@ -41,4 +41,4 @@ ovs-vsctl add-port br-eth1 em2
 systemctl restart neutron-openvswitch-agent.service
 </pre>
 
-另外因为要配置VLAN，所以与em2网卡相连接的交换机端口一定要是trunk口。
+另外因为要配置VLAN，所以与em2网卡相连接的交换机端口一定要是trunk口。还有就是与该端口相连的交换机应该定义这个VLAN。
