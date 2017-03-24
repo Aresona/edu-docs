@@ -193,6 +193,7 @@ assert			断言，宣布，声明
 tuple			元组
 discard			丢弃
 intersection			路口
+<<<<<<< HEAD
 legacy			遗产
 drastic			激烈
 make sense		合理
@@ -200,6 +201,21 @@ Interchange		交换
 unicode			统一码，万国码，单一码
 indent			缩进
 
+=======
+Retrieve			检索
+Subscribe		订阅
+laid out		布局
+innate			先天
+property		属性
+fundamental 		基本
+match against			匹配
+recurse			递归
+refs			参考
+Tracking		跟踪
+arbitrary		任意
+rack			架
+Scalability			可扩展性
+>>>>>>> bad1c2665bc721598b5da0eaf2e5436567c80fec
 </pre>
 
 

@@ -1,0 +1,8 @@
+export OS_PROJECT_DOMAIN_NAME={{ pillar['PROJECT_DOMAIN'] }}
+export OS_USER_DOMAIN_NAME={{ pillar['USER_DOMAIN'] }}
+export OS_PROJECT_NAME={{ pillar['DEMO_PROJECT'] }}
+export OS_USERNAME={{ pillar['DEMO_USERNAME'] }}
+export OS_PASSWORD={{ pillar['demo_password'] }}
+export OS_AUTH_URL=http://{{ pillar['controller'] }}:5000/v3
+export OS_IDENTITY_API_VERSION=3
+export OS_IMAGE_API_VERSION=2

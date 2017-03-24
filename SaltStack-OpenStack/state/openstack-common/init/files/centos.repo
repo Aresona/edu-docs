@@ -1,0 +1,6 @@
+[root@controller yum.repos.d]# cat centos.repo 
+[centos]
+name = centos
+baseurl = http://vault.centos.org/7.2.1511/os/x86_64/
+enabled = 1
+gpgcheck = 0

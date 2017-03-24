@@ -1,0 +1,11 @@
+include:
+  - openstack-common.init.clean
+  - openstack-common.init.history
+  - openstack-common.init.audit
+  - openstack-common.init.repo
+  - openstack-common.init.time
+  - openstack-common.init.sysctl
+  - openstack-common.init.language
+  - openstack-common.init.selinux
+  - openstack-common.init.fd
+  - openstack-common.init.sshd
