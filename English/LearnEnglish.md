@@ -193,6 +193,12 @@ assert			断言，宣布，声明
 tuple			元组
 discard			丢弃
 intersection			路口
+legacy			遗产
+drastic			激烈
+make sense		合理
+Interchange		交换
+unicode			统一码，万国码，单一码
+indent			缩进
 
 </pre>
 
