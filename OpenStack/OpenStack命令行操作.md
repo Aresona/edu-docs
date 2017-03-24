@@ -27,7 +27,7 @@ cinder service-list
 nova service-list
 neutron agent-list
 openstack endpoint show cinder
-
+neutron router-list
 </pre>
 
 
