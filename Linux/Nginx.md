@@ -38,6 +38,10 @@ server {
 
 Server Names: 也要可以通过通配符或正则表达式来匹配多个。
 
+servername可以被用来做别名，别名一般的用法在于把多个域名指向同一个地址，另外，就是给集群中的每一台RS指定一个单独的域名，这样方便区分(监控)。
+
+
+
 ### Using nginx as HTTP load balancer
 nginx支持的三种算法：RR/最小化连接/IP-HASH，默认RR；
 
@@ -105,4 +109,35 @@ access_log logs/access.log main gzip buffer=32K flush=5s;
 通过脚本移走，然后重定向空到该文件。
 
 
+
+### 跳转
+
+nginx的301和302跳转,nginx与apache规则区别不大，本代码实现lanyingblog.com跳转到www.lanyingblog.com，以避免搜索引擎分散权重。
+
+<pre>
+if ($host != 'www.lanyingblog.com') {
+    rewrite ^/(.*)$ http://www.lanyingblog.com/$1 permanent;
+}
+</pre>
+
+添加在conf配置文件内即可，一般我与伪静态的配置放在一起。代码中判断，非 `www.lanyingblog.com` 的，就自动跳转到`www.lanyingblog.com`，`permanent`代表301永久跳转，改为`redirect`则为302临时跳转。
+
+### modules
+
+`ngx_http_stub_status_module`
+
+<pre>
+location / {
+     stub_status on;
+     access_log off;
+}
+</pre>
+
+`ngx_core_module`
+
+<pre>
+error_log	file 	level;
+</pre>
+
+> 可以放置在: main,http,server,location标签段中。
 
