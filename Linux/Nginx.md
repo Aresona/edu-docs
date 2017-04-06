@@ -71,6 +71,22 @@ apache: select I/O模型   提供了多种多处理模块(MPMs)，这些模块�
 
 sendfile配置可以提高nginx表态资源托管效率。sendfile是一个系统调用，直接在内核空间完成文件发送，不需要先read再write，没有上下文切换开销。
 
+`server_tokens off;`
+
+控制 `http response header` 内的web服务版本信息的显示，以及错误信息中web服务版本信息的显示。
+
+`worker_processes 1;
+
+调整Nginx的worker进程数，最好和网站的用户相关联，如果不清楚用户数量，建议worker数一般可以是CPU的核数，还与存储和系统负载有关，具体看业务需要，官方建议。
+
+`worker_cpu_affinity`
+
+默认情况下，Nginx的多个进程有可能运行在某一个CPU或CPU的某一核上，导致Nginx进程使用硬件的资源不均，这个优化将尽可能地将不同的Nginx进程分配给不同的CPU处理，达到充分有效利用硬件的多CPU多侅资源的目的。它的作用是绑定不同的worker进程数到一组CPU上。通过设置bitmask控制进程允许使用的CPU，默认worker进程不会绑定到任何CPU上。并没有太大的效果。
+
+
+
+
+
 `keepalive_timeout 	60`
 
 指定服务端为每个TCP连接最多保持的时间。
