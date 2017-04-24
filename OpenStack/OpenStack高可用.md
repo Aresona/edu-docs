@@ -145,11 +145,20 @@ OpenStack 官方认为，在满足其 HA 要求的情况下，可以实现 IaaS 
 
 ### 云控制节点的 `A/P HA` 方案
 
-需要的话，可以使用 Pacemaker + Corosync 搭建两节点集群实现 A/P HA 方案。由主服务器实际提供服务，在其故障时由 Pacemaker 将服务切换到备服务器。OpenStack 给其组件提供了各种Pacemaker RA。对 Mysql 和 RabbitMQ 来说，可以使用 Pacemaker + Corosync + DRBD 实现 A/P HA。具体请参考 理解 OpenStack 高可用（HA）（4）：RabbitMQ 和 Mysql HA。具体配置请参考 OpenStack High Availability Guide。
+需要的话，可以使用 Pacemaker + Corosync 搭建两节点集群实现 A/P HA 方案。由主服务器实际提供服务，在其故障时由 Pacemaker 将服务切换到备服务器。OpenStack 给其组件提供了各种Pacemaker RA。对 Mysql 和 RabbitMQ 来说，可以使用 Pacemaker + Corosync + DRBD 实现 A/P HA。具体请参考 [理解 OpenStack 高可用（HA）（4）：RabbitMQ 和 Mysql HA](http://www.cnblogs.com/sammyliu/p/4730517.html)。具体配置请参考 [OpenStack High Availability Guide](https://docs.openstack.org/ha-guide/index.html)。
 
-  该 HA 方案的问题是：
+该 HA 方案的问题是：
 
-主备切换需要较长的时间
-只有主提供服务，在使用两个节点的情况下不能做负载均衡
-DRBD 脑裂会导致数据丢失的风险。A/P 模式的 Mysql 的可靠性没有 Mysql Galera 高。
-  因此，可以看到实际部署中，这种方案用得较少，只看到 Oracel 在使用这种方案。
+- 主备切换需要较长的时间
+- 只有主提供服务，在使用两个节点的情况下不能做负载均衡
+- DRBD 脑裂会导致数据丢失的风险。A/P 模式的 Mysql 的可靠性没有 Mysql Galera 高。
+
+因此，可以看到实际部署中，这种方案用得较少，只看到 Oracel 在使用这种方案。
+
+## Neutron HA
+
+Neutron 包括很多的组件，比如 L3 Agent，L2 Agent，LBaas，VPNaas，FWaas，Metadata Agent 等 Neutron 组件，其中部分组件提供了原生的HA 支持。这些组件之间的联系和区别：
+
+![](http://images2015.cnblogs.com/blog/697113/201512/697113-20151204105128158-604514786.jpg)
+
+
