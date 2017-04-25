@@ -117,3 +117,76 @@ LIBRADOS模块是客户端用来访问RADOS对象存储设备的。Ceph存储集
 1. 获取LIBRADOS
 2. 配置集群句柄
 3. 创建IO上下文。
+
+
+# Ceph安装
+
+### 同步时间
+
+### 安装包
+#### 配置YUM源(可以在三个节点上同时做)
+<pre>
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+</pre>
+`ceph.repo`
+<pre>
+[ceph]
+name=Ceph packages for $basearch
+baseurl=http://mirrors.163.com/ceph/rpm-hammer/el7/x86_64/
+enabled=1
+priority=1
+gpgcheck=0
+type=rpm-md
+gpgkey=https://download.ceph.com/keys/release.asc
+
+[ceph-noarch]
+name=Ceph noarch packages
+baseurl=http://mirrors.163.com/ceph/rpm-hammer/el7/noarch/
+enabled=1
+priority=1
+gpgcheck=0
+type=rpm-md
+gpgkey=https://download.ceph.com/keys/release.asc
+
+[ceph-source]
+name=Ceph source packages
+baseurl=http://mirrors.163.com/ceph/rpm-hammer/el7/SRPMS/
+enabled=0
+priority=1
+gpgcheck=1
+type=rpm-md
+gpgkey=https://download.ceph.com/keys/release.asc
+</pre>
+#### 安装 `ceph-deploy`(管理节点)
+
+<pre>
+yum install ceph-deploy -y
+</pre>
+
+#### 配置 `hosts`文件(管理节点)
+<pre>
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4 node1
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.56.11	node1
+192.168.56.12	node2
+192.168.56.13	node3
+</pre>
+
+#### 配置免密钥登陆(管理节点)
+
+<pre>
+ssh-keygen
+ssh-copy-id node1
+ssh-copy-id node2
+ssh-copy-id node3
+</pre>
+
+#### 执行部署
+<pre>
+mkdir my-cluster
+cd my-cluster
+ceph-deploy new node1
+ceph-deploy install node1 node2 node3
+</pre>
+
