@@ -367,6 +367,15 @@ master:
 
 > SLS使用git或者svn管理
 
+需要保持同步的地方有三处：
+
+1. `/etc/salt/master`配置文件
+2. `pki/master`和`pki/minion`目录里面的key
+3. `file_roots`和`pillar_roots`里面的文件
+
+最方便的方式是通过mount来挂载，只允许master机器访问；第三项则可以通过`git`或`svn`来统一管理。
+
+
 ## Salt Syndic
 
 相当于一个代理
