@@ -329,6 +329,11 @@ slat-run jobs.lookup_jid jid
 
 ## Masterless架构(无Master的架构)
 
+1. 用来配置master(写一个状态来配置master)，可用来做项目
+2. 在本地使用salt的各种功能
+3. 完全从本地运行(就一台机器使用salt)
+
+
 使用salt-call命令
 
 ### 配置
