@@ -190,3 +190,361 @@ ceph-deploy new node1
 ceph-deploy install node1 node2 node3
 </pre>
 
+
+### 手动安装
+<pre>
+yum install yum-plugin-priorities -y
+yum install snappy leveldb gdisk python-argparse gperftools-libs -y
+yum install ceph -y
+</pre>
+
+#### 创建 `ceph.conf`
+<pre>
+[root@node1 tmp]# cat /etc/ceph/ceph.conf 
+fsid = e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+mon initial members = node1
+mon host = 192.168.56.11
+</pre>
+
+#### 生成 `keyring`
+<pre>
+[root@localhost ceph]# ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+creating /tmp/ceph.mon.keyring
+[root@node1 tmp]# ceph-authtool -l ceph.mon.keyring 
+[mon.]
+	key = AQBEtRZZb7/SBRAA3VtahK9IaRuTziwHCM1pVQ==
+	caps mon = "allow *"
+</pre>
+#### 生成管理 `keyring`
+<pre>
+[root@localhost ceph]# ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
+creating /etc/ceph/ceph.client.admin.keyring
+[root@node1 tmp]# cat /etc/ceph/ceph.client.admin.keyring 
+[client.admin]
+	key = AQAwthZZOwGxNhAADD3aVPmaAspWtq3Utar1ug==
+	auid = 0
+	caps mds = "allow"
+	caps mon = "allow *"
+	caps osd = "allow *"
+</pre>
+#### 添加 `cient.admin` 到 `ceph.mon.keyring`
+<pre>
+[root@localhost ceph]# ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring 
+importing contents of /etc/ceph/ceph.client.admin.keyring into /tmp/ceph.mon.keyring
+[root@node1 tmp]# cat /tmp/ceph.mon.keyring 
+[mon.]
+	key = AQBEtRZZb7/SBRAA3VtahK9IaRuTziwHCM1pVQ==
+	caps mon = "allow *"
+[client.admin]
+	key = AQAwthZZOwGxNhAADD3aVPmaAspWtq3Utar1ug==
+	auid = 0
+	caps mds = "allow"
+	caps mon = "allow *"
+	caps osd = "allow *"
+</pre>
+#### 通过 `hostname` `ip address` `FSID` 生成一个 `monitor map`,并保存到 `/tmp/monmap`
+<pre>
+[root@localhost ceph]# monmaptool --create --add node1 192.168.56.11 --fsid e58bb0fd-0d89-4600-b2c2-27e1f58350cd /tmp/monmap
+monmaptool: monmap file /tmp/monmap
+monmaptool: set fsid to e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+monmaptool: writing epoch 0 to /tmp/monmap (1 monitors)
+[root@node1 tmp]# file monmap 
+monmap: DBase 3 data file
+[root@node1 tmp]# monmaptool --print /tmp/monmap 
+monmaptool: monmap file /tmp/monmap
+epoch 0
+fsid e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+last_changed 2017-05-13 15:35:53.582619
+created 2017-05-13 15:35:53.582619
+0: 192.168.56.11:6789/0 mon.node1
+</pre>
+#### 在`mon host`上创建一个默认的数据目录
+<pre>
+mkdir /var/lib/ceph/mon/ceph-node1
+</pre>
+#### 用监视器图和密钥环组装守护进程所需的初始数据。
+<pre>
+[root@localhost ceph]# ceph-mon --mkfs -i node1 --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+ceph-mon: set fsid to e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+ceph-mon: created monfs at /var/lib/ceph/mon/ceph-node1 for mon.node1
+[root@node1 ceph-node1]# tree
+.
+├── keyring
+└── store.db
+    ├── 000003.log
+    ├── CURRENT
+    ├── LOCK
+    ├── LOG
+    └── MANIFEST-000002
+</pre>
+#### 补充配置文件
+<pre>
+[root@localhost ceph]# cat /etc/ceph/ceph.conf 
+fsid = e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+mon initial members = node1
+mon host = 192.168.56.11
+public network = 192.168.56.0/24
+auth cluster required = cephx
+auth service required = cephx
+auth client required = cephx
+osd journal size = 1024
+osd pool default size = 2
+osd pool default min size = 1
+osd pool default pg num = 333
+osd pool default pgp num = 333
+osd crush chooseleaf type = 1
+</pre>
+#### 创建一个空文件 `done` ，表示 `monitor` 已经创建，可以启动了
+<pre>
+touch /var/lib/ceph/mon/ceph-node1/done
+</pre>
+#### 创建一个空文件 `sysvinit` ，表示可以通过 `sysvinit`方式启动监视器服务
+<pre>
+touch /var/lib/ceph/mon/ceph-node1/sysvinit
+</pre>
+#### 启动 `monitor`
+<pre>
+[root@node1 ceph-node1]# /etc/init.d/ceph start mon.node1
+=== mon.node1 === 
+Starting Ceph mon.node1 on node1...
+Running as unit ceph-mon.node1.1494662569.716170251.service.
+Starting ceph-create-keys on node1...
+</pre>
+#### 添加开机自启动
+<pre>
+chkconfig ceph on
+</pre>
+#### 验证 `mon` 节点
+<pre>
+[root@node1 ceph-node1]# ceph -s
+    cluster e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+     health HEALTH_ERR
+            64 pgs stuck inactive
+            64 pgs stuck unclean
+            no osds
+     monmap e1: 1 mons at {node1=192.168.56.11:6789/0}
+            election epoch 2, quorum 0 node1
+     osdmap e1: 0 osds: 0 up, 0 in
+      pgmap v2: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            0 kB used, 0 kB / 0 kB avail
+                  64 creating
+</pre>
+健康状态显示为 `HEALTH_ERR` 等是因为还没有部署 `OSD`节点
+
+### 加入 `OSDS`
+
+部署好 `mon` 并运行后，必须拥有足够的 `OSDS`来处理对象的复制数(osd pool default size= =2需要最少两个OSDS)才能达到 `active+clean`的状态。在启动了 `monitor` 后，集群会有一个默认的 `CRUSH map`；然而，该`CRUSH map`没有任何指向到`ceph node`的`ceph osd`
+#### 复制 `keyring` 文件及配置文件
+<pre>
+scp 192.168.56.11:/etc/ceph/ceph.client.admin.keyring /etc/ceph/
+scp 192.168.56.11:/etc/ceph/ceph.conf /etc/ceph/
+scp 192.168.56.11:/var/lib/ceph/bootstrap-osd/ceph.keyring /var/lib/ceph/bootstrap-osd/
+</pre>
+#### prepare OSD
+
+<pre>
+[root@node2 bootstrap-osd]# ceph-disk prepare --fs-type xfs /dev/sdb
+The operation has completed successfully.
+partx: /dev/sdb: error adding partition 2
+The operation has completed successfully.
+partx: /dev/sdb: error adding partitions 1-2
+meta-data=/dev/sdb1              isize=2048   agcount=4, agsize=1245119 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=0        finobt=0
+data     =                       bsize=4096   blocks=4980475, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=0
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+Warning: The kernel is still using the old partition table.
+The new table will be used at the next reboot.
+The operation has completed successfully.
+partx: /dev/sdb: error adding partitions 1-2
+[root@node2 bootstrap-osd]# parted /dev/sdb print
+Model: VMware, VMware Virtual S (scsi)
+Disk /dev/sdb: 21.5GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name          Flags
+ 2      1049kB  1074MB  1073MB               ceph journal
+ 1      1075MB  21.5GB  20.4GB  xfs          ceph data
+</pre>
+### 激活`OSD`
+<pre>
+[root@node2 bootstrap-osd]# ceph-disk activate /dev/sdb
+ceph-disk: Cannot discover filesystem type: device /dev/sdb: Line is truncated: 
+[root@node2 bootstrap-osd]# ceph-disk activate /dev/sdb1
+=== osd.0 === 
+create-or-move updated item name 'osd.0' weight 0.02 at location {host=node2,root=default} to crush map
+Starting Ceph osd.0 on node2...
+Running as unit ceph-osd.0.1494767265.928813797.service.
+[root@node3 ~]# ceph-disk activate /dev/sdb1
+=== osd.1 === 
+create-or-move updated item name 'osd.1' weight 0.02 at location {host=node3,root=default} to crush map
+Starting Ceph osd.1 on node3...
+Running as unit ceph-osd.1.1494767238.544066760.service.
+</pre>
+<pre>
+[root@node2 bootstrap-osd]# ps -ef|grep ceph
+root      2609     1  0 21:07 ?        00:00:00 /bin/bash -c ulimit -n 32768;  /usr/bin/ceph-osd -i 0 --pid-file /var/run/ceph/osd.0.pid -c /etc/ceph/ceph.conf --cluster ceph -f
+root      2613  2609  0 21:07 ?        00:00:01 /usr/bin/ceph-osd -i 0 --pid-file /var/run/ceph/osd.0.pid -c /etc/ceph/ceph.conf --cluster ceph -f
+</pre>
+#### 服务启动关闭
+<pre>
+/etc/init.d/ceph stop
+/etc/init.d/ceph start
+chkconfig ceph on
+</pre>
+#### 设置自动挂载分区
+<pre>
+[root@node2 bootstrap-osd]# mount
+/dev/sdb1 on /var/lib/ceph/osd/ceph-0 type xfs (rw,noatime,attr2,inode64,noquota)
+echo /dev/sdb1 /var/lib/ceph/osd/ceph-0
+echo 'UUID=246ba91d-cc1d-4516-b99b-fc52f3ea77bf /var/lib/ceph/osd/ceph-0      xfs     defaults        0 0' >> /etc/fstab
+</pre>
+ceph
+
+已经学会了的
+1. ceph的架构及能提供的服务种类
+2. monitor和storage cluster两个集群
+3. 搭建mon集群
+
+还需要学习的
+1. 搭建storage cluster
+2. 增加节点及删除节点
+3. 集成openstack
+
+总结错误案例
+
+当前系统状态(cluster map)和存储策略配置共同影响CRUSH算法的结果
+
+### `Cluster map`
+
+`Cluster Map`的实际内容包括：
+
+1. Epoch，即版本号。Cluster map的epoch是一个单调递增序列。Epoch越大，则cluster map版本越新。因此，持有不同版本cluster map的OSD或client可以简单地通过比较epoch决定应该遵从谁手中的版本。而monitor手中必定有epoch最大、版本最新的cluster map。当任意两方在通信时发现彼此epoch值不同时，将默认先将cluster map同步至高版本一方的状态，再进行后续操作
+2. 各个OSD的网络地址
+3. 各个OSD的状态。OSD状态的描述分为两个维度：up或者down（表明OSD是否正常工作），in或者out（表明OSD是否在至少一个PG中）。因此，对于任意一个OSD，共有四种可能的状态
+4. CRUSH算法配置参数。表明了Ceph集群的物理层级关系（cluster hierarchy），位置映射规则（placement rules）。
+
+
+### 扩展 `MON` 节点
+<pre>
+[root@node4 yum.repos.d]# scp 192.168.56.11:/etc/ceph/ceph.conf /etc/ceph  
+[root@node4 yum.repos.d]# scp 192.168.56.11:/etc/ceph/ceph.client.admin.keyring /etc/ceph
+</pre>
+
+#### 创建 `monitor` 默认数据目录
+<pre>
+mkdir /var/lib/ceph/mon/ceph-node4
+</pre>
+
+#### 取回显示器的 `keyring`
+<pre>
+[root@node4 mon]# ceph auth get mon. -o /etc/ceph/ceph.mon.keyring
+exported keyring for mon.
+[root@node4 ceph]# cat ceph.mon.keyring 
+[mon.]
+	key = AQBEtRZZb7/SBRAA3VtahK9IaRuTziwHCM1pVQ==
+	caps mon = "allow *"
+</pre>
+#### 取回显示器的 `monitor map`
+<pre>
+root@node4 ceph]# ceph mon getmap -o /etc/ceph/monmap
+got monmap epoch 1
+[root@node4 ceph]# monmaptool --print monmap 
+monmaptool: monmap file monmap
+epoch 1
+fsid e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+last_changed 2017-05-13 15:35:53.582619
+created 2017-05-13 15:35:53.582619
+0: 192.168.56.11:6789/0 mon.node1
+</pre>
+#### 将新的MON节点添加到monmap
+<pre>
+[root@node4 mon]# monmaptool --add node4 192.168.56.14 /etc/ceph/monmap 
+monmaptool: monmap file /etc/ceph/monmap
+monmaptool: writing epoch 1 to /etc/ceph/monmap (2 monitors)
+[root@node4 mon]# monmaptool --print /etc/ceph/monmap 
+monmaptool: monmap file /etc/ceph/monmap
+epoch 1
+fsid e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+last_changed 2017-05-13 15:35:53.582619
+created 2017-05-13 15:35:53.582619
+0: 192.168.56.11:6789/0 mon.node1
+1: 192.168.56.14:6789/0 mon.node4
+</pre>
+#### 初始化MON数据目录
+<pre>
+[root@node4 ceph]# ceph-mon -i node4 --mkfs --monmap /etc/ceph/monmap --keyring /etc/ceph/ceph.mon.keyring 
+ceph-mon: set fsid to e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+ceph-mon: created monfs at /var/lib/ceph/mon/ceph-node4 for mon.node4
+</pre>
+#### 将MON节点添加到集群
+<pre>
+[root@node4 mon]# ceph mon add node4 192.168.56.14
+^CError connecting to cluster: InterruptedOrTimeoutError
+</pre>
+> 这一步应该可不操作
+#### 完成MON节点初始化
+<pre>
+touch /var/lib/ceph/mon/ceph-node4/done
+touch /var/lib/ceph/mon/ceph-node4/sysvinit
+</pre>
+#### 启动MON节点
+<pre>
+[root@node4 ceph-node4]# /etc/init.d/ceph start
+=== mon.node4 === 
+Starting Ceph mon.node4 on node4...
+Running as unit ceph-mon.node4.1494841521.643855527.service.
+Starting ceph-create-keys on node4...
+</pre>
+#### 设置开机自启动
+<pre>
+chkconfig ceph on
+</pre>
+#### 查看当前状态
+<pre>
+[root@node1 tmp]# ceph -s
+    cluster e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+     health HEALTH_OK
+     monmap e2: 2 mons at {node1=192.168.56.11:6789/0,node4=192.168.56.14:6789/0}
+            election epoch 6, quorum 0,1 node1,node4
+     osdmap e19: 2 osds: 2 up, 2 in
+      pgmap v71: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            69804 kB used, 38821 MB / 38889 MB avail
+                  64 active+clean
+</pre>
+#### 在`node2`节点上增加 `ceph-mon`
+<pre>
+[root@node2 ceph-node2]# ceph -s
+    cluster e58bb0fd-0d89-4600-b2c2-27e1f58350cd
+     health HEALTH_OK
+     monmap e3: 3 mons at {node1=192.168.56.11:6789/0,node2=192.168.56.12:6789/0,node4=192.168.56.14:6789/0}
+            election epoch 12, quorum 0,1,2 node1,node2,node4
+     osdmap e29: 2 osds: 2 up, 2 in
+      pgmap v88: 64 pgs, 1 pools, 0 bytes data, 0 objects
+            68968 kB used, 38822 MB / 38889 MB avail
+                  64 active+clean
+</pre>
+
+## 监控
+<pre>
+git clone https://github.com/thelan/ceph-zabbix.git
+ceph-status.sh  README.md  zabbix_agent_ceph_plugin.conf  zabbix_templates
+[root@node1 ceph-zabbix]# cp zabbix_agent_ceph_plugin.conf /etc/zabbix/zabbix_agentd.d/
+[root@node1 ceph-zabbix]# cd /etc/zabbix/zabbix_agentd.d/
+[root@node1 zabbix_agentd.d]# ls
+userparameter_mysql.conf  zabbix_agent_ceph_plugin.conf
+[root@node1 zabbix_agentd.d]# ll
+total 8
+-rw-r--r-- 1 root root 1531 Apr 24 02:11 userparameter_mysql.conf
+-rw-r--r-- 1 root root 1704 May 15 18:31 zabbix_agent_ceph_plugin.conf
+[root@node1 zabbix_agentd.d]# cp ~/ceph-zabbix/
+ceph-status.sh                 README.md                      zabbix_templates/
+.git/                          zabbix_agent_ceph_plugin.conf  
+[root@node1 zabbix_agentd.d]# cp ~/ceph-zabbix/ceph-status.sh /opt/
+</pre>
