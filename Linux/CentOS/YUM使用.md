@@ -108,3 +108,73 @@ yumdownloader <package>
 
 > 执行上面命令后包默认是存放在当前目录下，可以使用 `--destdir` 选项来指定自定义的目录
 > 如果想要一起下载依赖包的话，可以加上参数 `--resolve` 
+
+
+## 制作一个本地EPEL镜像源
+*  配置源
+`/etc/yum.repos.d/epel.repo`
+<pre>
+[epel]
+name=Extra Packages for Enterprise Linux 7 - $basearch
+#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-7&arch=$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+
+[epel-debuginfo]
+name=Extra Packages for Enterprise Linux 7 - $basearch - Debug
+#baseurl=http://download.fedoraproject.org/pub/epel/7/$basearch/debug
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-debug-7&arch=$basearch
+failovermethod=priority
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+gpgcheck=1
+
+[epel-source]
+name=Extra Packages for Enterprise Linux 7 - $basearch - Source
+#baseurl=http://download.fedoraproject.org/pub/epel/7/SRPMS
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-source-7&arch=$basearch
+failovermethod=priority
+enabled=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+gpgcheck=1
+</pre>
+
+*  安装同步工具
+
+<pre>
+yum install yum-utils -y
+</pre>
+
+* 同步镜像
+
+<pre>
+reposync --repoid=epel
+</pre>
+
+* 搭建本地WEB服务并配置资源
+<pre>
+yum install nginx -y
+mv epel /usr/share/nginx/html
+</pre>
+
+* 创建本地YUM仓库并启动WEB服务
+
+<pre>
+cd /usr/share/nginx/html
+createrepo --database /usr/share/nginx/html
+systemctl start nginx
+</pre>
+
+* 在客户端节点配置本地源
+
+<pre>
+cat epel.repo <<EOF
+[epel]
+name=local epel repository
+baseurl=http://x.x.x.x/epel
+enabled=1
+gpgcheck=0
+</pre>
