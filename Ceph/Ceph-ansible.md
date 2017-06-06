@@ -101,3 +101,57 @@ vim all
 cephx_require_signature: false
 ansible-playbook site.yaml
 </pre>
+
+
+* 配置存储网络
+* 配置主机名及主机解析
+* 配置免密钥登陆
+* 安装 `ansible`
+* 安装 `ceph`
+* 克隆代码仓库
+* 配置并执行
+
+
+<pre>
+lsb_release -a
+yum install ansible -y
+git clone https://github.com/ceph/ceph-ansible
+cd ceph-ansible
+ansible --version
+cp group_vars/all.yml.sample grouop_vars/all
+cp group_vars/osds.yml.sample group_vars/osds
+cp site.yml.sample site.yml
+</pre>
+* edit all and osds
+`all`
+<pre>
+[root@node1 group_vars]# egrep -v '^$|^#' all
+---
+dummy:
+ceph_origin: 'distro'
+monitor_interface: ens5
+journal_size: 5120
+public_network: 192.168.122.0/24
+</pre>
+`osds`
+<pre>
+[root@node1 group_vars]# egrep -v '^$|^#' osds
+---
+dummy:
+devices:
+  - /dev/sdb
+journal_collocation: true
+</pre>
+`/etc/ansible/hosts`
+<pre>
+[root@node1 group_vars]# cat /etc/ansible/hosts
+[mons]
+storage[1:3]
+
+[osds]
+storage[1:3]
+</pre>
+<pre>
+cd ceph-ansible
+ansible-playbook site.yml
+</pre>
