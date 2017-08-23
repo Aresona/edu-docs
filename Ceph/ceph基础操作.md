@@ -112,3 +112,22 @@ ceph osd out osd.xxx
 <pre>
 ceph pg dump
 </pre>
+
+### [踢出废弃的OSD](http://www.zphj1987.com/2016/01/12/%E5%88%A0%E9%99%A4osd%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F/)
+方法一：
+<pre>
+systemctl stop ceph-osd@xx
+ceph osd out osd.xx
+ceph osd crush remove osd.xx
+ceph osd rm osd.xx
+ceph auth del osd.xx
+</pre>
+方法二：
+<pre>
+ceph osd crush reweight osd.xx 0.1
+systemctl stop ceph-osd@xx
+ceph osd out osd.xx
+ceph osd crush remove osd.xx
+ceph osd rm osd.xx
+ceph auth del osd.xx
+</pre>
