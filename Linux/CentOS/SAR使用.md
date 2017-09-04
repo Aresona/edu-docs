@@ -50,6 +50,7 @@ Average:            0      1327      0.00      0.02      0.05         0
 * plist-sz：进程列表中进程（processes）和线程（threads）的数量
 * ldavg-1：最后1分钟的系统平均负载 ldavg-5：过去5分钟的系统平均负载
 * ldavg-15：过去15分钟的系统平均负载
+* blocked: 等待IO完成的task数
 
 ## 查看内存使用状况
 
@@ -134,6 +135,7 @@ Average:     dev253-1      0.00      0.00      0.00      0.00      0.00      0.0
 * avwait：这是磁盘读或写操作等待执行的平均时间（单位为毫秒）。
 * avserv：这是磁盘读或写操作所执行的平均时间（单位为毫秒）。
 * rd_sec/s: 读取的扇区(sectors)数，每个sector是512字节
+* tps: 对应的是IOPS
 * avgrq-sz: issue to device的平均请求大小
 * avgqu-sz: 请求的平均队列长度
 * await: 一个IO请求花费的时间(单位为毫秒)，包括在队列中的时间

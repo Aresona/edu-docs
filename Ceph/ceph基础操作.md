@@ -131,3 +131,129 @@ ceph osd crush remove osd.xx
 ceph osd rm osd.xx
 ceph auth del osd.xx
 </pre>
+
+
+<pre>
+systemctl stop ceph-osd.target # all osd
+systemctl list-units -a |grep ceph|grep mount|grep var|sed 's/\\/\\\\/g'|awk '{print $1}'|xargs systemctl stop   # 停所有 mount 服务
+systemctl list-units -a |grep ceph|grep mount|grep var|sed 's/\\/\\\\/g'|awk '{print $1}'|xargs systemctl disable 
+
+for i in sd{b..l}; do ceph-disk trigger /dev/${i}1; done    # 启动正常的
+find /var/lib/ceph/osd/ -maxdepth 2 -name journal |xargs readlink  |xargs readlink |sort
+</pre>
+
+### ceph-disk
+<pre>
+prepare             Prepare a directory or disk for a Ceph OSD
+activate            Activate a Ceph OSD
+activate-lockbox    Activate a Ceph lockbox
+activate-block      Activate an OSD via its block device
+activate-journal    Activate an OSD via its journal device
+activate-all        Activate all tagged OSD partitions
+list                List disks, partitions, and Ceph OSDs
+suppress-activate   Suppress(压制) activate on a device (prefix)
+unsuppress-activate
+                    Stop suppressing activate on a device (prefix)
+deactivate          Deactivate a Ceph OSD
+destroy             Destroy a Ceph OSD
+zap                 Zap/erase/destroy a device's partition table (and
+                    contents)
+trigger             activate any device (called by udev)
+</pre>
+
+
+### 重新构建OSD
+<pre>
+umount /dev/sdj1; ceph-disk destroy /dev/sdj1 --zap
+ceph-disk prepare /dev/sdj
+mount|grep sdj
+ceph-disk trigger /dev/sdm1
+</pre>
+
+<pre>
+[root@host72 ~]# ceph-disk destroy -h
+usage: ceph-disk destroy [-h] [--cluster NAME] [--destroy-by-id <id>]
+                         [--dmcrypt-key-dir KEYDIR] [--zap]
+                         [PATH]
+
+Destroy the OSD located at PATH. It removes the OSD from the cluster,
+the crushmap and deallocates the OSD id. An OSD must be down before it
+can be destroyed.
+
+positional arguments:
+  PATH                  path to block device or directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --cluster NAME        cluster name to assign this disk to
+  --destroy-by-id <id>  ID of OSD to destroy
+  --dmcrypt-key-dir KEYDIR
+                        directory where dm-crypt keys are stored (If you don't
+                        know how it work, dont use it. we have default value)
+  --zap                 option to erase data and partition
+</pre>
+
+
+# 脚本
+## 脚本一
+<pre>
+[root@host72 ~]# cat b.sh 
+#!/bin/sh
+
+for i in sd{j..m}; do 
+umount /dev/${i}1
+umount /dev/${i}2
+sleep 1
+
+ceph-disk destroy  /dev/${i}1
+ceph-disk destroy  /dev/${i}2
+
+
+ceph-disk zap /dev/$i
+
+ceph-disk prepare /dev/${i}
+
+
+done
+</pre>
+
+## 脚本二
+<pre>
+#!/bin/sh
+
+for i in sd{l..m}; do 
+umount /dev/${i}1
+umount /dev/${i}2
+sleep 1
+
+ceph-disk destroy  /dev/${i}1
+ceph-disk destroy  /dev/${i}2
+
+
+ceph-disk zap /dev/$i
+
+sgdisk -n 3:0:+10G /dev/$i  --typecode=3:45b0969e-9b03-4f30-b4c6-b4b80ceff106 --change-name=3:"ceph journal"
+sgdisk -n 4:0:+10G /dev/$i --typecode=4:45b0969e-9b03-4f30-b4c6-b4b80ceff106 --change-name=4:"ceph journal"
+
+sgdisk -n 1:0:+360G /dev/$i --typecode=1:89c57f98-2fe5-4dc0-89c1-f3ad0ceff2be --change-name=1:"ceph data"
+sgdisk -n 2:0:0 /dev/$i --typecode=2:89c57f98-2fe5-4dc0-89c1-f3ad0ceff2be --change-name=2:"ceph data"
+
+
+
+done
+
+#sgdisk --typecode=1:4fbd7e29-9d25-41b8-afd0-062c0ceff05d -- /dev/sdj 
+#sgdisk --typecode=2:4fbd7e29-9d25-41b8-afd0-062c0ceff05d -- /dev/sdj 
+#sgdisk --typecode=3:45b0969e-9b03-4f30-b4c6-b4b80ceff106 -- /dev/sdj
+#sgdisk --typecode=4:45b0969e-9b03-4f30-b4c6-b4b80ceff106 -- /dev/sdj
+
+for i in sd{l..m}; do 
+
+ceph-disk prepare /dev/${i}1 /dev/${i}3 
+ceph-disk prepare /dev/${i}2 /dev/${i}4 
+
+sgdisk --typecode=1:4fbd7e29-9d25-41b8-afd0-062c0ceff05d -- /dev/${i}
+sgdisk --typecode=2:4fbd7e29-9d25-41b8-afd0-062c0ceff05d -- /dev/${i}
+
+done
+</pre>
