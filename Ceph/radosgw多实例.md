@@ -5,6 +5,8 @@
 # 实践过程
 
 - 修改配置文件
+
+
 	<pre>
 [client.rgw.host671]
 host = host67
