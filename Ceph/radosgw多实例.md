@@ -6,13 +6,15 @@
 
 - 修改配置文件
 	<pre>
-	[client.rgw.host671]
+[client.rgw.host671]
 host = host67
 keyring = /var/lib/ceph/radosgw/ceph-rgw.host671/keyring
 rgw socket path = /tmp/radosgw-host671.sock
 log file = /var/log/ceph/ceph-rgw-host671.log
 rgw data = /var/lib/ceph/radosgw/ceph-rgw.host671
-rgw frontends = civetweb port=8081</pre>
+rgw frontends = civetweb port=8081
+</pre>
+
 - 新建ceph auth新建radosgw用户
 	<pre>
 	ceph auth add client.rgw.host671 mon 'allow rw' osd 'allow rwx'</pre>
