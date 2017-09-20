@@ -22,14 +22,18 @@ rgw frontends = civetweb port=8081
 	ceph auth add client.rgw.host671 mon 'allow rw' osd 'allow rwx'</pre>
 - 准备相关文件
 	1. 创建 `rgw data` 
-		<pre>cd /var/lib/ceph/radosgw
-		mkdir ceph-rgw-host671
-		touch sysvinit done
-		ceph auth get-key client.rgw.host671 > keyring
-		chmod 600 keyring
-		cd ..
-		chown -R ceph.ceph ceph-rgw-host671
-		</pre> 
+<pre>
+n=
+cd /var/lib/ceph/radosgw
+mkdir ceph-rgw.host$n
+cd ceph-rgw.host$n
+touch sysvinit done
+ceph auth get-key client.rgw.host$n > keyring
+chmod 600 keyring
+cd ..
+chown -R ceph.ceph ceph-rgw.host$n
+/etc/init.d/rados restart
+</pre>
 	2. 这里的keyring的格式如下：
 		<pre>
 		[client.rgw.host281]
@@ -194,3 +198,5 @@ esac
 <pre>
 /etc/init.d/radosgw restart
 </pre>
+
+
