@@ -1,0 +1,24 @@
+在生产环境中剔除OSD节点需要考虑到不能影响正常业务，这时可以调整recovery的优先级，这样做完后可在白天进行迁移
+
+ceph tell osd.* injectargs  '--osd_max_backfills 1'
+ceph tell osd.* injectargs  '--osd_recovery_max_active 4'
+ceph tell osd.* injectargs  '--osd_recovery_max_single_start 2'
+ceph tell osd.* injectargs  '--osd_client_op_priority 63'
+ceph tell osd.* injectargs  '--osd_recovery_op_priority 3'
+ceph tell osd.* injectargs  '--osd_recovery_threads 1'
+ceph tell osd.* injectargs  '--osd_recovery_max_chunk 33554432'
+ceph tell osd.* injectargs  '--osd_backfill_scan_min 2'
+ceph tell osd.* injectargs  '--osd_backfill_scan_max 4'
+
+ceph osd crush reweight osd.x 0
+
+ceph osd out osd.x
+cehp osd crush remove osd.x
+cehp auth del osd.x
+systemctl stop ceph-osd.target
+cehp osd rm osd.x
+umount /dev/sd*
+
+
+http://wiki.corp.awcloud.com/pages/viewpage.action?pageId=57705162
+http://bbs.ceph.org.cn/question/253
