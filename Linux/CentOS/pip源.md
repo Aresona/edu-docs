@@ -64,3 +64,5 @@ extra-index-url = http://192.168.8.201:8080/simple/
 [install]
 trusted-host=192.168.8.201
 </pre>
+
+[参考信息](https://www.liuliqiang.info/post/build-your-own-pip-source/)
