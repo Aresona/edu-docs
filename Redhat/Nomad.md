@@ -5,3 +5,27 @@
 4.  k8s复杂，nomad简单，它只包括一个二进制文件，里面包含了客户端与服务端，并且不需要另外的服务提供协调和存储。nomad将轻量级的资源管理器和复杂的调度器组合到一个系统中。nomad是分布式的、高可用的、易操作的系统。
 5.  
 
+
+
+
+常见命令
+
+<pre>
+nomad plan *.hcl
+nomad run *.hcl
+nomad status
+nomad status topo
+nomad status -short topo
+nomad alloc-status xxx
+nomad node-status xxx
+nomad node-status -self
+nomad status
+nomad node-status --allocs
+nomad server-members
+</pre>
+
+服务管理
+<pre>
+nomad agent -dev
+nomad agent -config=/etc/nomad
+</pre>
