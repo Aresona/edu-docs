@@ -29,3 +29,33 @@ nomad server-members
 nomad agent -dev
 nomad agent -config=/etc/nomad
 </pre>
+
+服务管理
+<pre>
+nomad stop neutron-agents
+nomad run /etc/kolla/nomad/neutron-agents.hcl
+</pre>
+
+# consul
+consul members看到的不是实时信息，如果想要看到比较实时的信息，需要使用HTTP API，而不是gossip协议。
+
+<pre>
+curl localhost:8500/v1/catalog/nodes
+consul-cli kv read /templates/neutron/ml_conf.ini.ctmpl
+consul-cli kv read templates/neutron/ml2_conf.ini.ctmpl
+</pre>
+
+参考文档：
+
+AWStack Neutron多外部网络配置.pdf
+
+容器内调试：http://wiki.corp/pages/viewpage.action?pageId=42074640
+
+容器启动运行的命令是kolla_start,一般会在该脚本里面调用/run_command命令来作为容器的启动命令，另外容器还有渲染的功能，一般使用了渲染功能的文件需要通
+
+过consul-cli kv write的方式修改，因为直接修改容器里面的文件会被该功能的默认配置覆盖。
+
+收集日志的两种方式：
+
+1. 本地默认路径
+2. alloc/xxxxx/alloc/logs
