@@ -166,6 +166,7 @@ trigger             activate any device (called by udev)
 <pre>
 umount /dev/sdj1; ceph-disk destroy /dev/sdj1 --zap
 ceph-disk prepare /dev/sdj
+ceph-disk prepare /dev/sdd /dev/sdb1  (数据盘/日志盘)
 mount|grep sdj
 ceph-disk trigger /dev/sdm1
 </pre>

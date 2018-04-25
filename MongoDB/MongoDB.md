@@ -329,3 +329,31 @@ rs.conf()
 
 
 
+### 常用函数
+<pre>
+ceilometer:RECOVERING> rs.help()
+	rs.status()                     { replSetGetStatus : 1 } checks repl set status
+	rs.initiate()                   { replSetInitiate : null } initiates set with default settings
+	rs.initiate(cfg)                { replSetInitiate : cfg } initiates set with configuration cfg
+	rs.conf()                       get the current configuration object from local.system.replset
+	rs.reconfig(cfg)                updates the configuration of a running replica set with cfg (disconnects)
+	rs.add(hostportstr)             add a new member to the set with default attributes (disconnects)
+	rs.add(membercfgobj)            add a new member to the set with extra attributes (disconnects)
+	rs.addArb(hostportstr)          add a new member which is arbiterOnly:true (disconnects)
+	rs.stepDown([secs])             step down as primary (momentarily) (disconnects)(可用来切换primary)
+	rs.syncFrom(hostportstr)        make a secondary to sync from the given member
+	rs.freeze(secs)                 make a node ineligible to become primary for the time specified
+	rs.remove(hostportstr)          remove a host from the replica set (disconnects)
+	rs.slaveOk()                    shorthand for db.getMongo().setSlaveOk()
+
+	db.isMaster()                   check who is primary
+	db.printReplicationInfo()       check oplog size and time range
+
+	reconfiguration helpers disconnect from the database so the shell will display
+	an error, even if the command succeeds.
+	see also http://<mongod_host>:28017/_replSet for additional diagnostic info
+</pre>
+<pre>
+db.printCollectionStats()		查看当前节点的状态
+db.printSlaveReplicationInfo()	查看同步状态
+</pre>
