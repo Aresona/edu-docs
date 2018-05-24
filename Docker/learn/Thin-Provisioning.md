@@ -14,11 +14,17 @@ The efficiency of thin or thick/fat provisioning is a function of the use case, 
 ## 对比
 虚拟磁盘有3种格式：(1)thin provision (2)thick(也叫zeroedthick) (3)eagerzeroedthik 
 
-(1) thin provision就是一种按需分配的格式，创建时虚拟磁盘不会分配给所有需要的空间，而是根据需要，vmdk自动增大并一边zero一边使用这些新空间；vmdk文件的真实大小不等于创建的虚拟磁盘的大小，而只是等于实际数据的大小。(zero就是对磁盘空白处写入0，可以理解成或者翻译成初始化)。![](http://blog.51cto.com/attachment/201002/201002231266940027002.gif)
+(1) thin provision就是一种按需分配的格式，创建时虚拟磁盘不会分配给所有需要的空间，而是根据需要，vmdk自动增大并一边zero一边使用这些新空间；vmdk文件的真实大小不等于创建的虚拟磁盘的大小，而只是等于实际数据的大小。(zero就是对磁盘空白处写入0，可以理解成或者翻译成初始化)。
+
+![](http://blog.51cto.com/attachment/201002/201002231266940027002.gif)
  
-(2) zeroedthick格式，在创建时分配给所有空间，vmdk文件大小等于创建的虚拟磁盘大小，虚拟磁盘中的空闲空间被预占，但空闲空间(empty space)并没有zeroed，需要在使用的时候再zero。由于磁盘在第一次写入时必须zero，这个类型的磁盘在第一次磁盘块写入时会有轻微的I/O性能损失。 ![](http://blog.51cto.com/attachment/201002/201002231266940051791.gif)
+(2) zeroedthick格式，在创建时分配给所有空间，vmdk文件大小等于创建的虚拟磁盘大小，虚拟磁盘中的空闲空间被预占，但空闲空间(empty space)并没有zeroed，需要在使用的时候再zero。由于磁盘在第一次写入时必须zero，这个类型的磁盘在第一次磁盘块写入时会有轻微的I/O性能损失。
+
+ ![](http://blog.51cto.com/attachment/201002/201002231266940051791.gif)
  
-(3) eagerzeroedthick，在创建时分配给所有空间，vmdk文件大小等于创建的虚拟磁盘大小，虚拟磁盘中的空闲空间被预占。另外，在创建磁盘时，会将所有数据块都初始化(zero)，这将花费更多时间。这种格式的磁盘因为已经zero化，使用时不再需要zero，因此第一次写入数据到磁盘块时的性能较好。启用FT必须使用eagerzeoedthick格式的虚拟磁盘(如果原先不是，也会被转换成这种格式) ![](http://blog.51cto.com/attachment/201002/201002231266940084192.gif)
+(3) eagerzeroedthick，在创建时分配给所有空间，vmdk文件大小等于创建的虚拟磁盘大小，虚拟磁盘中的空闲空间被预占。另外，在创建磁盘时，会将所有数据块都初始化(zero)，这将花费更多时间。这种格式的磁盘因为已经zero化，使用时不再需要zero，因此第一次写入数据到磁盘块时的性能较好。启用FT必须使用eagerzeoedthick格式的虚拟磁盘(如果原先不是，也会被转换成这种格式) 
+
+![](http://blog.51cto.com/attachment/201002/201002231266940084192.gif)
  
 
 举例来说，1个500GB的虚拟磁盘，其中100GB已用，还有400GB未用空间。thin格式的vmdk文件大小就是100GB，zeroedthick和eagerzeroedthick格式的vmdk文件大小都是500GB，只不过eagerzeroedthick的那400GB未用空间都已经初始化过了，都填上了0，而zeroedthick的那400GB未用空间还没初始化。
