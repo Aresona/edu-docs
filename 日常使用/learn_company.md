@@ -53,6 +53,11 @@ query_team_battle_event | lol_smatch_team_battle_event | select from lol_smatch_
 query_eye_pos | lol_smatch_battle_eye_pos |select from lol_smatch_battle_info_room /lol/livedata/?p0=1&p1=searchData&req_type=query_eye_pos&source=vod
 query_dragon_event|lol_smatch_battle_dragon_event | lol_smatch_battle_info_room/lol/livedata/?p0=1&p1=searchData&req_type=query_dragon_event
 query_kill_pos |lol_smatch_battle_pos_kill /lol_smatch_battle_pos_dead| lol_smatch_battle_info_room/lol/livedata/?p0=1&p1=searchData&req_type=query_kill_pos
+insertLOL_MATCH2_GAME_GAME_INFO | lol_match2_game_game_baseinfo| lpl.qq.com/web201612/data/LOL_MATCH2_GAME_GAME
 
 
+### 创建数据库
+drop database esport_x_lol_release;
+CREATE DATABASE `esports_x_lol_release` /*!40100 DEFAULT CHARACTER SET utf8 */
 
+mysqldump esports_x_lol_dev -uroot -p --add-drop-table | mysql esports_x_lol_release -uroot -p
