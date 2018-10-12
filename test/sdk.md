@@ -62,3 +62,9 @@ Demo_download | Airplay Mirror/PC Mirror/Android APP Mirror
 
 ## AirPlay-SDK 实践
 
+
+
+
+SDK功能
+能不能不显示，直接把流推到一个rtmp服务器
+或者把屏幕集成后每一个是不是独立的？
