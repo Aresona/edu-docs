@@ -187,6 +187,11 @@ docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -
 docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -v /data/nginx/output:/var/www/html/output -v /data/java/jar:/jar -v /data/java/src/extreme-box-training/scripts/Arial1.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/Arial1.traineddata -v /data/java/src/extreme-box-training/scripts/heb.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/heb.traineddata -v /data/java/src/extreme-box-training/scripts/chi_sim.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata --name javanew java:v2 java -jar /jar/training-0.0.1-SNAPSHOT.jar --ex.rtmp.server.ip="192.168.28.17"
 docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -v /data/nginx/output:/var/www/html/output -v /data/java/src/extreme-box-training/target:/jar -v /data/java/scripts/Arial1.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/Arial1.traineddata -v /data/java/scripts/heb.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/heb.traineddata -v /data/java/scripts/chi_sim.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata --name javanew java:v2 java -jar /jar/training-0.0.1-SNAPSHOT.jar  --ex.rtmp.server.ip="192.168.28.17"
 docker run -it  -v /build:/jar --name javanew1  java:v2 /bin/bash
+docker run -d     \
+    -p 1935:1935        \
+    -p 8080:8080        \
+    -e RTMP_STREAM_NAMES=first,second,third,fourth,fifth,sixth,seventh,eighth \
+    jasonrivers/nginx-rtmp
 </pre>
 
 ## 残留问题
