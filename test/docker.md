@@ -153,6 +153,29 @@ python3 /opt/scripts/ff-pull.py /usr/bin/ffmpeg rtsp://192.168.31.168/first /var
 ./ffmpeg -c:v h264_cuvid -i rtsp://192.168.31.168/third -strict -2 -c:v h264_nvenc -f mp4 -y /tmp/demo2.mp4
 </pre>
 
+## Centos7
+<pre>
+curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+# npm 包含在 nodejs 安装包中，不需要单独安装 
+yum install nodejs -y
+yum install maven -y
+mkdir /data/nginx -p
+mkdir /data/nginx/output/videos -p
+mkdir /data/nginx/output/events -p
+mkdir /data/java
+mkdir /data/node
+git clone http://119.23.246.221/binbin.ren/TrainingMatch.git
+cd TrainingMatch
+git checkout 0.1
+npm install
+rm -rf node_modules/antd
+yarn add antd
+yarn start
+git clone http://119.23.246.221/mengyan.li/extreme-box-training.git
+cd extreme-box-training
+mvn clean all
+</pre>
+
 ## 新系统处理
 <pre>
 apt-get install curl -y
