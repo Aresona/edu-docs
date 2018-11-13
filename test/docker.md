@@ -153,6 +153,29 @@ python3 /opt/scripts/ff-pull.py /usr/bin/ffmpeg rtsp://192.168.31.168/first /var
 ./ffmpeg -c:v h264_cuvid -i rtsp://192.168.31.168/third -strict -2 -c:v h264_nvenc -f mp4 -y /tmp/demo2.mp4
 </pre>
 
+## Centos7
+<pre>
+curl -sL https://rpm.nodesource.com/setup_8.x | bash -
+# npm 包含在 nodejs 安装包中，不需要单独安装 
+yum install nodejs -y
+yum install maven -y
+mkdir /data/nginx -p
+mkdir /data/nginx/output/videos -p
+mkdir /data/nginx/output/events -p
+mkdir /data/java
+mkdir /data/node
+git clone http://119.23.246.221/binbin.ren/TrainingMatch.git
+cd TrainingMatch
+git checkout 0.1
+npm install
+rm -rf node_modules/antd
+yarn add antd
+yarn start
+git clone http://119.23.246.221/mengyan.li/extreme-box-training.git
+cd extreme-box-training
+mvn clean all
+</pre>
+
 ## 新系统处理
 <pre>
 apt-get install curl -y
@@ -187,6 +210,11 @@ docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -
 docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -v /data/nginx/output:/var/www/html/output -v /data/java/jar:/jar -v /data/java/src/extreme-box-training/scripts/Arial1.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/Arial1.traineddata -v /data/java/src/extreme-box-training/scripts/heb.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/heb.traineddata -v /data/java/src/extreme-box-training/scripts/chi_sim.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata --name javanew java:v2 java -jar /jar/training-0.0.1-SNAPSHOT.jar --ex.rtmp.server.ip="192.168.28.17"
 docker run -d --restart=always -p 8089:8089 -v /data/java/scripts:/opt/scripts -v /data/nginx/output:/var/www/html/output -v /data/java/src/extreme-box-training/target:/jar -v /data/java/scripts/Arial1.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/Arial1.traineddata -v /data/java/scripts/heb.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/heb.traineddata -v /data/java/scripts/chi_sim.traineddata:/usr/share/tesseract-ocr/4.00/tessdata/chi_sim.traineddata --name javanew java:v2 java -jar /jar/training-0.0.1-SNAPSHOT.jar  --ex.rtmp.server.ip="192.168.28.17"
 docker run -it  -v /build:/jar --name javanew1  java:v2 /bin/bash
+docker run -d     \
+    -p 1935:1935        \
+    -p 8080:8080        \
+    -e RTMP_STREAM_NAMES=first,second,third,fourth,fifth,sixth,seventh,eighth \
+    jasonrivers/nginx-rtmp
 </pre>
 
 ## 残留问题
