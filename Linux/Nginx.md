@@ -157,3 +157,46 @@ error_log	file 	level;
 
 > 可以放置在: main,http,server,location标签段中。
 
+## 反向代理解决跨域问题
+
+### url 请求不带参数
+
+```shell
+    upstream webpy {
+        server 127.0.0.1:11111;
+    }
+    server {
+        listen       80;
+        server_name  s.esports-x.cn;
+
+        location ~ /status/ {
+            proxy_pass http://127.0.0.1:11111;
+        }
+
+        location ~ /detail/ {
+            proxy_pass http://127.0.0.1:11111;
+        }
+    }
+```
+
+### url 带请求代理
+
+```shell
+    upstream webpy {
+        server 127.0.0.1:8100;
+    }
+    server {
+        listen       80;
+        server_name  jiaolian.esports-x.cn;
+
+        # 方法一
+        location ~* ^/detail/(.*) {
+             proxy_pass http://127.0.0.1:8100/$1$is_args$args;
+        }   
+        
+        # 方法二
+        location /detail/ {
+             proxy_pass http://127.0.0.1:8100/;
+        }
+```
+
