@@ -200,3 +200,7 @@ error_log	file 	level;
         }
 ```
 
+[链接一]([http://landcareweb.com/questions/4289/ru-he-shi-yong-nginxtong-guo-proxy-passzhuan-fa-cha-xun-zi-fu-chuan-can-shu](http://landcareweb.com/questions/4289/ru-he-shi-yong-nginxtong-guo-proxy-passzhuan-fa-cha-xun-zi-fu-chuan-can-shu))
+
+[链接二](https://stackoverflow.com/questions/8130692/how-can-query-string-parameters-be-forwarded-through-a-proxy-pass-with-nginx)
+
